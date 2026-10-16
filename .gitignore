@@ -73,3 +73,5 @@ node_modules/
 skills-lock.json
 dist/
 .vscode/
+lib/
+functions/lib/

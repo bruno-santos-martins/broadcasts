@@ -1,16 +1,18 @@
 {
   "compilerOptions": {
-    "module": "NodeNext",
+    "module": "commonjs",
+    "target": "es2022",
+    "moduleResolution": "node",
+    "strict": true,
     "esModuleInterop": true,
-    "moduleResolution": "nodenext",
+    "skipLibCheck": true,
+    "forceConsistentCasingInFileNames": true,
     "noImplicitReturns": true,
     "noUnusedLocals": true,
     "outDir": "lib",
     "rootDir": "src",
     "sourceMap": true,
-    "strict": true,
-    "target": "es2017",
-    "skipLibCheck": true
+    "ignoreDeprecations": "6.0"
   },
   "compileOnSave": true,
   "include": [
