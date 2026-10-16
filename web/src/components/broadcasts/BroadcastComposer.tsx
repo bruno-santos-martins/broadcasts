@@ -142,11 +142,11 @@ export const BroadcastComposer: React.FC<BroadcastComposerProps> = ({
             variant="outlined"
             sx={{
               '& .MuiOutlinedInput-root': {
-                backgroundColor: '#0F1624',
+                backgroundColor: '#0E1524',
                 color: '#F1F5F9',
                 borderRadius: '0.75rem',
                 fontSize: '0.875rem',
-                '& fieldset': { borderColor: '#222E46' },
+                '& fieldset': { borderColor: '#25385C' },
                 '&:hover fieldset': { borderColor: '#54D1D6' },
                 '&.Mui-focused fieldset': { borderColor: '#54D1D6' },
               },
@@ -168,14 +168,14 @@ export const BroadcastComposer: React.FC<BroadcastComposerProps> = ({
             variant="outlined"
             sx={{
               '& .MuiOutlinedInput-root': {
-                backgroundColor: '#0F1624',
+                backgroundColor: '#0E1524',
                 color: '#F1F5F9',
                 borderRadius: '0.75rem',
-                '& fieldset': { borderColor: '#222E46' },
+                '& fieldset': { borderColor: '#25385C' },
                 '&:hover fieldset': { borderColor: '#54D1D6' },
                 '&.Mui-focused fieldset': { borderColor: '#54D1D6' },
               },
-              '& .MuiSelect-icon': { color: '#8291A5' },
+              '& .MuiSelect-icon': { color: '#8E9EB5' },
             }}
           >
             {connections.map((c) => (
@@ -277,11 +277,11 @@ export const BroadcastComposer: React.FC<BroadcastComposerProps> = ({
                 onChange={(e) => setScheduledFor(e.target.value)}
                 sx={{
                   '& .MuiOutlinedInput-root': {
-                    backgroundColor: '#0F1624',
+                    backgroundColor: '#0E1524',
                     color: '#F1F5F9',
                     borderRadius: '0.5rem',
                     fontSize: '0.85rem',
-                    '& fieldset': { borderColor: '#222E46' },
+                    '& fieldset': { borderColor: '#25385C' },
                     '&:hover fieldset': { borderColor: '#54D1D6' },
                     '&.Mui-focused fieldset': { borderColor: '#54D1D6' },
                   },

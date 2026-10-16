@@ -55,7 +55,7 @@ export const ConnectionList: React.FC<ConnectionListProps> = ({
           return (
             <div
               key={conn.id}
-              className="flex flex-col justify-between rounded-2xl border border-unni-border bg-unni-card p-6 shadow-sm transition hover:border-[#2D3E5E]"
+              className="flex flex-col justify-between rounded-2xl border border-unni-border bg-unni-card p-6 shadow-sm transition hover:border-[#38538A]"
             >
               <div>
                 <div className="flex items-start justify-between gap-2">
@@ -79,7 +79,7 @@ export const ConnectionList: React.FC<ConnectionListProps> = ({
                 </div>
 
                 <div className="mt-3.5 flex items-center gap-2 text-sm text-slate-300">
-                  <PhoneIcon sx={{ fontSize: 17, color: '#8291A5' }} />
+                  <PhoneIcon sx={{ fontSize: 17, color: '#8E9EB5' }} />
                   <span className="font-mono text-xs">{conn.phone}</span>
                 </div>
 
@@ -88,8 +88,9 @@ export const ConnectionList: React.FC<ConnectionListProps> = ({
                 </div>
               </div>
 
-              <div className="mt-6 flex items-center justify-between border-t border-unni-divider pt-4">
+              <div className="mt-6 flex items-center justify-between border-t border-[#223354] pt-4">
                 <button
+                  type="button"
                   onClick={() => navigate(`/contacts?connectionId=${conn.id}`)}
                   className="inline-flex items-center gap-1.5 text-xs font-semibold text-unni-accent transition hover:underline"
                 >
@@ -98,6 +99,7 @@ export const ConnectionList: React.FC<ConnectionListProps> = ({
                 </button>
 
                 <button
+                  type="button"
                   onClick={() => setSelectedDeleteId(conn.id)}
                   title="Excluir Conexão"
                   className="rounded-lg p-1.5 text-unni-muted transition hover:bg-rose-500/10 hover:text-rose-400"

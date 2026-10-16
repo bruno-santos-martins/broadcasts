@@ -8,10 +8,11 @@
   color-scheme: dark;
   --unni-sidebar: #0C1019;
   --unni-main: #12192A;
-  --unni-card: #172134;
-  --unni-input: #0F1624;
-  --unni-border: #222E46;
-  --unni-divider: #1C263B;
+  --unni-card: #1B2946;
+  --unni-card-hover: #203154;
+  --unni-input: #0E1524;
+  --unni-border: #2A3E66;
+  --unni-divider: #223354;
   --unni-accent: #54D1D6;
   --unni-accent-hover: #45C4C9;
   --unni-accent-text: #0C181F;
@@ -61,10 +62,10 @@ body {
 }
 
 ::-webkit-scrollbar-thumb {
-  background: #222E46;
+  background: #223354;
   border-radius: 9999px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: #2D3D5E;
+  background: #2E4470;
 }

@@ -15,11 +15,11 @@ const darkTheme = createTheme({
     },
     background: {
       default: '#12192A',
-      paper: '#172134',
+      paper: '#1B2946',
     },
     text: {
       primary: '#F1F5F9',
-      secondary: '#8291A5',
+      secondary: '#8E9EB5',
     },
   },
   typography: {
@@ -31,6 +31,17 @@ const darkTheme = createTheme({
       'Roboto',
       'sans-serif',
     ].join(','),
+  },
+  components: {
+    MuiDialog: {
+      styleOverrides: {
+        paper: {
+          backgroundColor: '#1B2946',
+          border: '1px solid #2A3E66',
+          boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.5), 0 8px 10px -6px rgba(0, 0, 0, 0.4)',
+        },
+      },
+    },
   },
 });
 

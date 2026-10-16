@@ -120,7 +120,7 @@ export const ContactsPage: React.FC = () => {
                 className={`rounded-xl px-3.5 py-1.5 text-xs font-medium transition ${
                   selectedConnectionFilter === ''
                     ? 'bg-unni-accent/15 text-unni-accent border border-unni-accent/35 font-semibold'
-                    : 'bg-[#0F1624] text-[#7F8FA4] hover:text-white hover:bg-[#162238] border border-[#1E2B44]'
+                    : 'bg-[#0E1524] text-[#8E9EB5] hover:text-white hover:bg-[#1E2E4E] border border-[#25385C]'
                 }`}
               >
                 Todas as Conexões
@@ -134,7 +134,7 @@ export const ContactsPage: React.FC = () => {
                   className={`rounded-xl px-3.5 py-1.5 text-xs font-medium transition ${
                     selectedConnectionFilter === conn.id
                       ? 'bg-unni-accent/15 text-unni-accent border border-unni-accent/35 font-semibold'
-                      : 'bg-[#0F1624] text-[#7F8FA4] hover:text-white hover:bg-[#162238] border border-[#1E2B44]'
+                      : 'bg-[#0E1524] text-[#8E9EB5] hover:text-white hover:bg-[#1E2E4E] border border-[#25385C]'
                   }`}
                 >
                   {conn.name}

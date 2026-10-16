@@ -56,14 +56,14 @@ export const LoginPage: React.FC = () => {
 
         {/* Card Form */}
         <div className="rounded-2xl border border-unni-border bg-unni-card p-8 shadow-xl">
-          <div className="mb-6 flex rounded-xl bg-[#0C121E] p-1 border border-[#1E2B44]">
+          <div className="mb-6 flex rounded-xl bg-[#0E1524] p-1 border border-[#25385C]">
             <button
               type="button"
               onClick={() => setIsRegister(false)}
               className={`w-1/2 rounded-lg py-2 text-xs font-semibold transition-all ${
                 !isRegister
-                  ? 'bg-[#182338] text-unni-accent shadow-sm border border-[#2B3E60]'
-                  : 'bg-transparent text-[#7F8FA4] border border-transparent hover:text-white'
+                  ? 'bg-[#1E2E4E] text-unni-accent shadow-sm border border-[#2E4674]'
+                  : 'bg-transparent text-[#8E9EB5] border border-transparent hover:text-white'
               }`}
             >
               Acessar Conta
@@ -73,8 +73,8 @@ export const LoginPage: React.FC = () => {
               onClick={() => setIsRegister(true)}
               className={`w-1/2 rounded-lg py-2 text-xs font-semibold transition-all ${
                 isRegister
-                  ? 'bg-[#182338] text-unni-accent shadow-sm border border-[#2B3E60]'
-                  : 'bg-transparent text-[#7F8FA4] border border-transparent hover:text-white'
+                  ? 'bg-[#1E2E4E] text-unni-accent shadow-sm border border-[#2E4674]'
+                  : 'bg-transparent text-[#8E9EB5] border border-transparent hover:text-white'
               }`}
             >
               Criar Nova Conta
@@ -101,15 +101,15 @@ export const LoginPage: React.FC = () => {
                   onChange={(e) => setName(e.target.value)}
                   slotProps={{
                     input: {
-                      startAdornment: <PersonIcon sx={{ color: '#8291A5', mr: 1, fontSize: 18 }} />,
+                      startAdornment: <PersonIcon sx={{ color: '#8E9EB5', mr: 1, fontSize: 18 }} />,
                     },
                   }}
                   sx={{
                     '& .MuiOutlinedInput-root': {
-                      backgroundColor: '#0F1624',
+                      backgroundColor: '#0E1524',
                       color: '#F1F5F9',
                       borderRadius: '0.5rem',
-                      '& fieldset': { borderColor: '#222E46' },
+                      '& fieldset': { borderColor: '#25385C' },
                       '&:hover fieldset': { borderColor: '#54D1D6' },
                       '&.Mui-focused fieldset': { borderColor: '#54D1D6' },
                     },
@@ -131,15 +131,15 @@ export const LoginPage: React.FC = () => {
                 onChange={(e) => setEmail(e.target.value)}
                 slotProps={{
                   input: {
-                    startAdornment: <EmailIcon sx={{ color: '#8291A5', mr: 1, fontSize: 18 }} />,
+                    startAdornment: <EmailIcon sx={{ color: '#8E9EB5', mr: 1, fontSize: 18 }} />,
                   },
                 }}
                 sx={{
                   '& .MuiOutlinedInput-root': {
-                    backgroundColor: '#0F1624',
+                    backgroundColor: '#0E1524',
                     color: '#F1F5F9',
                     borderRadius: '0.5rem',
-                    '& fieldset': { borderColor: '#222E46' },
+                    '& fieldset': { borderColor: '#25385C' },
                     '&:hover fieldset': { borderColor: '#54D1D6' },
                     '&.Mui-focused fieldset': { borderColor: '#54D1D6' },
                   },
@@ -160,15 +160,15 @@ export const LoginPage: React.FC = () => {
                 onChange={(e) => setPassword(e.target.value)}
                 slotProps={{
                   input: {
-                    startAdornment: <LockIcon sx={{ color: '#8291A5', mr: 1, fontSize: 18 }} />,
+                    startAdornment: <LockIcon sx={{ color: '#8E9EB5', mr: 1, fontSize: 18 }} />,
                   },
                 }}
                 sx={{
                   '& .MuiOutlinedInput-root': {
-                    backgroundColor: '#0F1624',
+                    backgroundColor: '#0E1524',
                     color: '#F1F5F9',
                     borderRadius: '0.5rem',
-                    '& fieldset': { borderColor: '#222E46' },
+                    '& fieldset': { borderColor: '#25385C' },
                     '&:hover fieldset': { borderColor: '#54D1D6' },
                     '&.Mui-focused fieldset': { borderColor: '#54D1D6' },
                   },

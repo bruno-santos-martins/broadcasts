@@ -58,7 +58,7 @@ export const ContactList: React.FC<ContactListProps> = ({
     <>
       <div className="overflow-x-auto rounded-2xl border border-unni-border bg-unni-card shadow-sm">
         <table className="w-full text-left text-sm text-slate-300">
-          <thead className="border-b border-unni-divider bg-unni-input/60 text-xs uppercase text-unni-muted">
+          <thead className="border-b border-[#223354] bg-[#0E1524] text-xs uppercase text-unni-muted">
             <tr>
               <th scope="col" className="px-6 py-4 font-semibold">Nome</th>
               <th scope="col" className="px-6 py-4 font-semibold">Telefone</th>
@@ -66,7 +66,7 @@ export const ContactList: React.FC<ContactListProps> = ({
               <th scope="col" className="px-6 py-4 font-semibold text-right">Ações</th>
             </tr>
           </thead>
-          <tbody className="divide-y divide-unni-divider/60">
+          <tbody className="divide-y divide-[#223354]">
             {contacts.map((contact) => (
               <tr key={contact.id} className="transition-colors hover:bg-white/[0.02]">
                 <td className="px-6 py-4 font-medium text-slate-100">
@@ -87,13 +87,14 @@ export const ContactList: React.FC<ContactListProps> = ({
                   </div>
                 </td>
                 <td className="px-6 py-4">
-                  <span className="inline-flex items-center rounded-lg bg-unni-input px-2.5 py-1 text-xs font-medium text-slate-300 border border-unni-border">
+                  <span className="inline-flex items-center rounded-lg bg-[#0E1524] px-2.5 py-1 text-xs font-medium text-slate-300 border border-[#25385C]">
                     {getConnectionName(contact.connectionId)}
                   </span>
                 </td>
                 <td className="px-6 py-4 text-right">
                   <div className="flex items-center justify-end gap-1">
                     <button
+                      type="button"
                       onClick={() => onEdit(contact)}
                       title="Editar Contato"
                       className="rounded-lg p-1.5 text-unni-muted transition hover:bg-white/[0.05] hover:text-unni-accent"
@@ -101,6 +102,7 @@ export const ContactList: React.FC<ContactListProps> = ({
                       <EditIcon sx={{ fontSize: 18 }} />
                     </button>
                     <button
+                      type="button"
                       onClick={() => setSelectedDeleteId(contact.id)}
                       title="Excluir Contato"
                       className="rounded-lg p-1.5 text-unni-muted transition hover:bg-rose-500/10 hover:text-rose-400"

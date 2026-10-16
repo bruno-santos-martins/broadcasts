@@ -59,20 +59,21 @@ export const ConnectionFormModal: React.FC<ConnectionFormModalProps> = ({
       slotProps={{
         paper: {
           sx: {
-            backgroundColor: '#172134',
-            border: '1px solid #222E46',
+            backgroundColor: '#1B2946', // Azul do fundo, ligeiramente mais claro
+            border: '1px solid #2A3E66',
             borderRadius: '1rem',
             color: '#F1F5F9',
+            boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.6)',
           },
         },
       }}
     >
       <form onSubmit={handleSubmit}>
-        <DialogTitle sx={{ color: '#F8FAFC', fontWeight: 600, borderBottom: '1px solid #1C263B' }}>
+        <DialogTitle sx={{ color: '#FFFFFF', fontWeight: 600, borderBottom: '1px solid #223354', px: 3, py: 2.5 }}>
           Nova Conexão WhatsApp
         </DialogTitle>
 
-        <DialogContent sx={{ display: 'flex', flexDirection: 'column', gap: 2.5, pt: 3 }}>
+        <DialogContent sx={{ display: 'flex', flexDirection: 'column', gap: 2.5, pt: 3, px: 3 }}>
           {errorMessage && (
             <div className="rounded-xl bg-rose-500/10 border border-rose-500/30 p-3 text-xs text-rose-400">
               {errorMessage}
@@ -92,10 +93,10 @@ export const ConnectionFormModal: React.FC<ConnectionFormModalProps> = ({
               variant="outlined"
               sx={{
                 '& .MuiOutlinedInput-root': {
-                  backgroundColor: '#0F1624',
+                  backgroundColor: '#0E1524',
                   color: '#F8FAFC',
-                  borderRadius: '0.5rem',
-                  '& fieldset': { borderColor: '#222E46' },
+                  borderRadius: '0.625rem',
+                  '& fieldset': { borderColor: '#25385C' },
                   '&:hover fieldset': { borderColor: '#54D1D6' },
                   '&.Mui-focused fieldset': { borderColor: '#54D1D6' },
                 },
@@ -116,10 +117,10 @@ export const ConnectionFormModal: React.FC<ConnectionFormModalProps> = ({
               variant="outlined"
               sx={{
                 '& .MuiOutlinedInput-root': {
-                  backgroundColor: '#0F1624',
+                  backgroundColor: '#0E1524',
                   color: '#F8FAFC',
-                  borderRadius: '0.5rem',
-                  '& fieldset': { borderColor: '#222E46' },
+                  borderRadius: '0.625rem',
+                  '& fieldset': { borderColor: '#25385C' },
                   '&:hover fieldset': { borderColor: '#54D1D6' },
                   '&.Mui-focused fieldset': { borderColor: '#54D1D6' },
                 },
@@ -128,14 +129,16 @@ export const ConnectionFormModal: React.FC<ConnectionFormModalProps> = ({
           </div>
         </DialogContent>
 
-        <DialogActions sx={{ p: 2.5, borderTop: '1px solid #1C263B' }}>
+        <DialogActions sx={{ p: 3, borderTop: '1px solid #223354', gap: 1 }}>
           <Button
             onClick={onClose}
             disabled={isSubmitting}
             sx={{
-              color: '#8291A5',
+              color: '#8E9EB5',
               textTransform: 'none',
-              '&:hover': { backgroundColor: 'rgba(255, 255, 255, 0.05)', color: '#F8FAFC' },
+              fontWeight: 500,
+              px: 2,
+              '&:hover': { backgroundColor: 'rgba(255, 255, 255, 0.05)', color: '#FFFFFF' },
             }}
           >
             Cancelar
@@ -150,6 +153,9 @@ export const ConnectionFormModal: React.FC<ConnectionFormModalProps> = ({
               fontWeight: 700,
               textTransform: 'none',
               boxShadow: 'none',
+              borderRadius: '0.625rem',
+              px: 2.5,
+              py: 1,
               '&:hover': { backgroundColor: '#45C4C9', boxShadow: 'none' },
             }}
           >

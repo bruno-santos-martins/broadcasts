@@ -55,7 +55,7 @@ export const BroadcastList: React.FC<BroadcastListProps> = ({
 
   return (
     <>
-      <div className="flex flex-col divide-y divide-[#1E293D]">
+      <div className="flex flex-col divide-y divide-[#223354]">
         {broadcasts.map((item) => {
           const isScheduled = item.status === 'SCHEDULED';
 
@@ -85,6 +85,7 @@ export const BroadcastList: React.FC<BroadcastListProps> = ({
                 )}
 
                 <button
+                  type="button"
                   onClick={() => setSelectedDeleteId(item.id)}
                   title="Excluir Disparo"
                   className="rounded-md p-1 text-unni-muted opacity-40 transition hover:bg-rose-500/10 hover:text-rose-400 group-hover:opacity-100"
