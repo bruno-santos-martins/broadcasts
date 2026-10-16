@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState } from 'react';
 import { Refresh as RefreshIcon } from '@mui/icons-material';
 import { useConnections } from '../hooks/useConnections';
 import { useContacts } from '../hooks/useContacts';
@@ -20,6 +20,7 @@ export const BroadcastPage: React.FC = () => {
   const { contacts } = useContacts();
   const {
     broadcasts,
+    counts,
     filter,
     setFilter,
     loading,
@@ -28,14 +29,6 @@ export const BroadcastPage: React.FC = () => {
     addBroadcast,
     removeBroadcast,
   } = useBroadcasts('ALL', selectedConnectionId || undefined);
-
-  const counts = useMemo(() => {
-    return {
-      all: broadcasts.length,
-      sent: broadcasts.filter((b) => b.status === 'SENT').length,
-      scheduled: broadcasts.filter((b) => b.status === 'SCHEDULED').length,
-    };
-  }, [broadcasts]);
 
   return (
     <div className="flex-1 overflow-y-auto bg-unni-main">
@@ -52,6 +45,7 @@ export const BroadcastPage: React.FC = () => {
           </div>
 
           <button
+            type="button"
             onClick={() => refresh()}
             title="Recarregar Disparos"
             className="self-start rounded-xl border border-unni-border bg-unni-card p-2.5 text-unni-muted transition hover:text-white sm:self-auto"
