@@ -11,8 +11,17 @@ export interface ProcessPendingResult {
 }
 
 /**
- * Caso de uso funcional que orquestra a busca e o disparo de mensagens agendadas.
- * Identifica broadcasts pendentes vencidos e efetua a transição de status atômica.
+ * Caso de Uso: Processamento de Disparos Agendados (Worker Assíncrono).
+ * 
+ * Separação de Responsabilidades (Clean Architecture / Functional):
+ * Esta função orquestra o fluxo de negócio de ponta a ponta sem se acoplar
+ * aos detalhes de transporte (HTTP ou Cloud Scheduler):
+ * 
+ * 1. Determina o marco temporal oficial da execução com Timestamp do Firestore.
+ * 2. Consulta o repositório em busca de mensagens agendadas vencidas.
+ * 3. Se não houver itens, encerra rapidamente com log informativo (early return).
+ * 4. Havendo itens, efetua a transição de estado atômica para 'SENT'.
+ * 5. Retorna um sumário tipado com a contagem de itens processados para auditoria.
  */
 export const processPendingBroadcasts = async (): Promise<ProcessPendingResult> => {
   const now = Timestamp.now();
@@ -34,6 +43,7 @@ export const processPendingBroadcasts = async (): Promise<ProcessPendingResult> 
     `[Worker:processPendingBroadcasts] Encontrados ${pendingDocs.length} disparo(s) para envio imediato.`
   );
 
+  // Executa a transição de status em lote de forma atômica
   await updateBroadcastsToSent(pendingDocs, now);
 
   const docIds = pendingDocs.map((doc) => doc.id);

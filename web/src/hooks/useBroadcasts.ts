@@ -17,8 +17,14 @@ export const useBroadcasts = (initialFilter: BroadcastFilterType = 'ALL', connec
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
 
-  // Sincronização em tempo real nativa com onSnapshot do Cloud Firestore
-  // Quando a Cloud Function processar e atualizar disparos agendados para SENT, a tela reflete instantaneamente!
+  /**
+   * Sincronização em Tempo Real via onSnapshot (WebSockets do Cloud Firestore)
+   * 
+   * Por que usar onSnapshot em vez de getDocs tradicional?
+   * Quando a Cloud Function em background roda a cada minuto e atualiza os disparos
+   * de 'SCHEDULED' para 'SENT', o Firestore envia um evento direto via WebSocket para o browser.
+   * O usuário vê a tag mudar de cor e o status atualizar ao vivo, sem precisar dar F5 na página!
+   */
   useEffect(() => {
     if (!user) {
       setAllBroadcasts([]);
@@ -47,7 +53,7 @@ export const useBroadcasts = (initialFilter: BroadcastFilterType = 'ALL', connec
           broadcastService.mapDocToBroadcast(docSnap.id, docSnap.data())
         );
 
-        // Ordena por data decrescente (mais recentes primeiro)
+        // Ordenação client-side por data mais recente para garantir estabilidade visual
         list.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
 
         setAllBroadcasts(list);
@@ -60,10 +66,15 @@ export const useBroadcasts = (initialFilter: BroadcastFilterType = 'ALL', connec
       }
     );
 
+    // Limpa a subscrição do WebSocket quando o componente é desmontado para evitar memory leaks
     return () => unsubscribe();
   }, [user, connectionId]);
 
-  // Contadores globais fixos e independentes da aba selecionada
+  /**
+   * Contadores Globais Fixos (useMemo):
+   * Mantém a contagem total de 'Todas', 'Agendadas' e 'Enviadas' sempre constante,
+   * mesmo quando o usuário troca de aba para filtrar a listagem.
+   */
   const counts = useMemo(() => {
     return {
       all: allBroadcasts.length,

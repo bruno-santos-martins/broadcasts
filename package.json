@@ -2,13 +2,12 @@
   "name": "desafio-gcp-zap",
   "version": "1.0.0",
   "private": true,
-  "description": "Monorepo para transmissões inteligentes de WhatsApp com Firebase e React Vite",
+  "description": "Sistema de Gestão e Disparos Inteligentes de WhatsApp com Firebase e React",
   "scripts": {
     "dev": "concurrently -k -p \"[{name}]\" -n \"FUNCTIONS:WATCH,EMULATORS,WEB:VITE\" -c \"yellow.bold,blue.bold,cyan.bold\" \"npm --prefix functions run dev\" \"firebase emulators:start --project desafio-gcp-zap\" \"npm --prefix web run dev\"",
-    "dev:backend": "concurrently -k -p \"[{name}]\" -n \"FUNCTIONS:WATCH,EMULATORS\" -c \"yellow.bold,blue.bold\" \"npm --prefix functions run dev\" \"firebase emulators:start --project desafio-gcp-zap\"",
-    "dev:frontend": "npm --prefix web run dev",
     "build": "npm --prefix functions run build && npm --prefix web run build",
-    "emulators": "firebase emulators:start"
+    "deploy": "firebase deploy",
+    "deploy:functions": "firebase deploy --only functions"
   },
   "devDependencies": {
     "concurrently": "^9.1.2"

@@ -89,9 +89,26 @@ export const fetchBroadcasts = async (
 };
 
 /**
- * Cria um novo disparo na coleção raiz /broadcasts.
- * - Se scheduledAt for data futura: status = "SCHEDULED", scheduledAt = Timestamp.fromDate(date), sentAt = null
- * - Se for disparo imediato: status = "SENT", scheduledAt = serverTimestamp(), sentAt = serverTimestamp()
+ * Criação de Disparos (Broadcast) no Cloud Firestore.
+ * 
+ * Regra de Negócio:
+ * 1. Disparo Agendado (Data Futura):
+ *    - Status inicial: 'SCHEDULED'.
+ *    - scheduledAt: Timestamp oficial gerado a partir da data informada.
+ *    - sentAt: null (será preenchido pela Cloud Function no minuto exato do envio).
+ * 
+ * 2. Disparo Imediato:
+ *    - Status inicial: 'SENT'.
+ *    - scheduledAt e sentAt: serverTimestamp() do Firestore.
+ * 
+ * Por que serverTimestamp()?
+ * Relógios locais de navegadores de usuários podem estar adiantados, atrasados ou em 
+ * fusos errados. O serverTimestamp() garante que a data gravada seja a oficial do 
+ * servidor Google, evitando inconsistências em auditorias e ordenação.
+ * 
+ * Coleção Raiz /broadcasts:
+ * Conforme especificado na arquitetura do desafio, nenhuma subcoleção é utilizada.
+ * O isolamento multi-tenant é mantido via foreign key `userId: auth.currentUser.uid`.
  */
 export const createBroadcast = async (
   userId: string,
