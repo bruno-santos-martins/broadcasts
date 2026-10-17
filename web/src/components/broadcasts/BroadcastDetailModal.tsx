@@ -1,8 +1,9 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import {
   Dialog,
   DialogContent,
   IconButton,
+  CircularProgress,
 } from '@mui/material';
 import {
   Close as CloseIcon,
@@ -17,6 +18,7 @@ import {
 } from '@mui/icons-material';
 import type { Broadcast } from '../../types/broadcast';
 import type { Contact } from '../../types/contact';
+import { fetchContactById } from '../../services/contactService';
 
 interface BroadcastDetailModalProps {
   broadcast: Broadcast | null;
@@ -30,26 +32,78 @@ export const BroadcastDetailModal: React.FC<BroadcastDetailModalProps> = ({
   onClose,
 }) => {
   const [copied, setCopied] = useState(false);
+  const [fetchedContactsMap, setFetchedContactsMap] = useState<Record<string, Contact>>({});
+  const [isLoadingContacts, setIsLoadingContacts] = useState(false);
 
-  // Mapeia os IDs dos contatos selecionados para os objetos reais de contato
+  // Busca os contatos faltantes diretamente no Firestore caso não estejam no cache da página
+  useEffect(() => {
+    if (!broadcast || !broadcast.contactIds || broadcast.contactIds.length === 0) {
+      return;
+    }
+
+    const missingIds = broadcast.contactIds.filter(
+      (id) => !contacts.some((c) => c.id === id) && !fetchedContactsMap[id]
+    );
+
+    if (missingIds.length === 0) return;
+
+    let isMounted = true;
+    setIsLoadingContacts(true);
+
+    Promise.all(
+      missingIds.map(async (id) => {
+        try {
+          const contact = await fetchContactById(broadcast.userId, id);
+          return { id, contact };
+        } catch (err) {
+          console.error(`[BroadcastDetailModal] Erro ao buscar contato ${id}:`, err);
+          return { id, contact: null };
+        }
+      })
+    ).then((results) => {
+      if (!isMounted) return;
+      setFetchedContactsMap((prev) => {
+        const next = { ...prev };
+        results.forEach(({ id, contact }) => {
+          if (contact) {
+            next[id] = contact;
+          }
+        });
+        return next;
+      });
+      setIsLoadingContacts(false);
+    });
+
+    return () => {
+      isMounted = false;
+    };
+  }, [broadcast, contacts, fetchedContactsMap]);
+
+  // Resolve os contatos: prioriza contatos recebidos por prop, depois os buscados no Firestore
   const resolvedContacts = useMemo(() => {
     if (!broadcast || !broadcast.contactIds) return [];
 
     return broadcast.contactIds.map((id) => {
-      const found = contacts.find((c) => c.id === id);
-      if (found) {
-        return found;
+      const foundInProps = contacts.find((c) => c.id === id);
+      if (foundInProps) {
+        return foundInProps;
       }
+
+      const foundInFetched = fetchedContactsMap[id];
+      if (foundInFetched) {
+        return foundInFetched;
+      }
+
       return {
         id,
         userId: broadcast.userId,
         connectionId: broadcast.connectionId,
-        name: `Contato (${id.slice(0, 8)}...)`,
-        phone: 'Telefone não localizado',
+        name: `Contato (${id.slice(0, 6)}...)`,
+        phone: 'Carregando telefone...',
         createdAt: '',
       } as Contact;
     });
-  }, [broadcast, contacts]);
+  }, [broadcast, contacts, fetchedContactsMap]);
 
   if (!broadcast) return null;
 
@@ -154,13 +208,16 @@ export const BroadcastDetailModal: React.FC<BroadcastDetailModalProps> = ({
             <label className="flex items-center gap-1.5 text-xs font-semibold text-slate-300">
               <GroupIcon sx={{ fontSize: 14 }} className="text-unni-accent" />
               Destinatários ({resolvedContacts.length})
+              {isLoadingContacts && (
+                <CircularProgress size={12} sx={{ color: '#54D1D6', ml: 0.5 }} />
+              )}
             </label>
             <span className="text-[11px] text-unni-muted">
               {resolvedContacts.length === 1 ? '1 contato selecionado' : `${resolvedContacts.length} contatos selecionados`}
             </span>
           </div>
 
-          <div className="max-h-44 overflow-y-auto rounded-xl border border-[#25385C] bg-[#0E1524] p-2 divide-y divide-[#1D2B44]">
+          <div className="max-h-48 overflow-y-auto rounded-xl border border-[#25385C] bg-[#0E1524] p-2 divide-y divide-[#1D2B44]">
             {resolvedContacts.length === 0 ? (
               <div className="p-3 text-center text-xs text-unni-muted">
                 Nenhum destinatário registrado para este disparo.

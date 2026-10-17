@@ -92,13 +92,11 @@ export const BroadcastPage: React.FC = () => {
                 />
               </div>
 
-              {/* Table Header: Texto | Rendo */}
               <div className="mb-3 grid grid-cols-12 text-sm font-normal text-unni-muted px-1 border-b border-unni-divider/60 pb-2">
                 <span className="col-span-8">Texto</span>
-                <span className="col-span-4 text-right">Rendo</span>
+                <span className="col-span-4 text-right">Ações</span>
               </div>
 
-              {/* List */}
               <BroadcastList
                 broadcasts={broadcasts}
                 contacts={contacts}
