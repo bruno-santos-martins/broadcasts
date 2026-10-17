@@ -3,10 +3,40 @@ import { Add as AddIcon, Refresh as RefreshIcon } from '@mui/icons-material';
 import { useConnections } from '../hooks/useConnections';
 import { ConnectionList } from '../components/connections/ConnectionList';
 import { ConnectionFormModal } from '../components/connections/ConnectionFormModal';
+import type { Connection, CreateConnectionDTO, UpdateConnectionDTO } from '../types/connection';
 
 export const ConnectionsPage: React.FC = () => {
-  const { connections, loading, error, refresh, addConnection, removeConnection } = useConnections();
+  const { connections, loading, error, refresh, addConnection, updateConnection, removeConnection } = useConnections();
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [editingConnection, setEditingConnection] = useState<Connection | null>(null);
+  const openModalButtonRef = React.useRef<HTMLButtonElement>(null);
+
+  const handleOpenCreateModal = () => {
+    setEditingConnection(null);
+    setIsModalOpen(true);
+  };
+
+  const handleOpenEditModal = (conn: Connection) => {
+    setEditingConnection(conn);
+    setIsModalOpen(true);
+  };
+
+  const handleCloseModal = () => {
+    setIsModalOpen(false);
+    setEditingConnection(null);
+    // Retorna o foco para o botão que abriu o modal (WCAG 2.1)
+    setTimeout(() => {
+      openModalButtonRef.current?.focus();
+    }, 50);
+  };
+
+  const handleModalSubmit = async (dto: CreateConnectionDTO | UpdateConnectionDTO) => {
+    if (editingConnection) {
+      await updateConnection(editingConnection.id, dto as UpdateConnectionDTO);
+    } else {
+      await addConnection(dto as CreateConnectionDTO);
+    }
+  };
 
   return (
     <div className="flex-1 overflow-y-auto bg-unni-main">
@@ -24,18 +54,22 @@ export const ConnectionsPage: React.FC = () => {
 
           <div className="flex items-center gap-2">
             <button
+              type="button"
               onClick={() => refresh()}
               title="Recarregar Conexões"
-              className="rounded-xl border border-unni-border bg-unni-card p-2.5 text-unni-muted transition hover:text-white"
+              aria-label="Recarregar lista de conexões"
+              className="rounded-xl border border-unni-border bg-unni-card p-2.5 text-unni-muted transition hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-400 focus-visible:ring-offset-2 focus-visible:ring-offset-slate-900"
             >
-              <RefreshIcon sx={{ fontSize: 18 }} />
+              <RefreshIcon sx={{ fontSize: 18 }} aria-hidden="true" />
             </button>
 
             <button
-              onClick={() => setIsModalOpen(true)}
-              className="inline-flex items-center gap-2 rounded-xl bg-unni-accent px-4 py-2.5 text-sm font-semibold text-unni-accentText transition hover:bg-unni-accentHover active:scale-[0.98] shadow-sm"
+              ref={openModalButtonRef}
+              type="button"
+              onClick={handleOpenCreateModal}
+              className="inline-flex items-center gap-2 rounded-xl bg-unni-accent px-4 py-2.5 text-sm font-semibold text-unni-accentText transition hover:bg-unni-accentHover active:scale-[0.98] shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-400 focus-visible:ring-offset-2 focus-visible:ring-offset-slate-900"
             >
-              <AddIcon sx={{ fontSize: 18 }} />
+              <AddIcon sx={{ fontSize: 18 }} aria-hidden="true" />
               Nova Conexão
             </button>
           </div>
@@ -45,7 +79,7 @@ export const ConnectionsPage: React.FC = () => {
       <div className="p-8 md:p-12">
         <div className="max-w-7xl">
           {error && (
-            <div className="mb-6 rounded-xl bg-rose-500/10 border border-rose-500/30 p-4 text-xs text-rose-400">
+            <div role="alert" className="mb-6 rounded-xl bg-rose-500/10 border border-rose-500/30 p-4 text-xs text-rose-400">
               {error}
             </div>
           )}
@@ -54,16 +88,16 @@ export const ConnectionsPage: React.FC = () => {
           <ConnectionList
             connections={connections}
             loading={loading}
+            onEdit={handleOpenEditModal}
             onDelete={removeConnection}
           />
 
-          {/* Modal to add connection */}
+          {/* Modal to add/edit connection */}
           <ConnectionFormModal
             open={isModalOpen}
-            onClose={() => setIsModalOpen(false)}
-            onSubmit={async (dto) => {
-              await addConnection(dto);
-            }}
+            connection={editingConnection}
+            onClose={handleCloseModal}
+            onSubmit={handleModalSubmit}
           />
         </div>
       </div>

@@ -20,6 +20,17 @@ export const Navbar: React.FC = () => {
     navigate('/login');
   };
 
+  // Fecha menu móvel ao pressionar Escape
+  React.useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape' && mobileOpen) {
+        setMobileOpen(false);
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [mobileOpen]);
+
   const navItems = [
     { label: 'Conexões', path: '/connections', icon: <ChatIcon sx={{ fontSize: 20 }} /> },
     { label: 'Contatos', path: '/contacts', icon: <PeopleIcon sx={{ fontSize: 20 }} /> },
@@ -37,9 +48,12 @@ export const Navbar: React.FC = () => {
           <span className="text-[11px] text-unni-muted">| ∞ Mots Business Partners</span>
         </div>
         <button
+          type="button"
           onClick={() => setMobileOpen(!mobileOpen)}
-          className="rounded-lg p-2 text-unni-muted hover:bg-unni-card hover:text-white"
-          aria-label="Abrir menu"
+          className="rounded-lg p-2 text-unni-muted hover:bg-unni-card hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-400 focus-visible:ring-offset-2 focus-visible:ring-offset-slate-900"
+          aria-label={mobileOpen ? 'Fechar menu de navegação' : 'Abrir menu de navegação'}
+          aria-expanded={mobileOpen}
+          aria-controls="main-sidebar-nav"
         >
           {mobileOpen ? <CloseIcon /> : <MenuIcon />}
         </button>
@@ -47,12 +61,14 @@ export const Navbar: React.FC = () => {
 
       {/* Sidebar Navigation */}
       <aside
+        id="main-sidebar-nav"
         className={`fixed inset-y-0 left-0 z-40 flex w-72 flex-col justify-between border-r border-unni-divider bg-unni-sidebar transition-transform duration-200 ease-in-out md:static md:translate-x-0 ${
           mobileOpen ? 'translate-x-0' : '-translate-x-full'
         }`}
+        aria-label="Menu Lateral Principal"
       >
         <div className="flex flex-col p-6">
-          {/* Logo & Subtitle matching the screenshot */}
+          {/* Logo & Subtitle */}
           <div className="mb-10 flex flex-col">
             <div className="flex items-center gap-2">
               <span className="text-2xl font-bold tracking-tight text-unni-accent">
@@ -63,21 +79,21 @@ export const Navbar: React.FC = () => {
           </div>
 
           {/* Nav links */}
-          <nav className="flex flex-col gap-2">
+          <nav aria-label="Navegação principal" className="flex flex-col gap-2">
             {navItems.map((item) => (
               <NavLink
                 key={item.path}
                 to={item.path}
                 onClick={() => setMobileOpen(false)}
                 className={({ isActive }) =>
-                  `flex items-center gap-3.5 rounded-xl px-3.5 py-3 text-sm font-medium transition-colors ${
+                  `flex items-center gap-3.5 rounded-xl px-3.5 py-3 text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-400 focus-visible:ring-offset-2 focus-visible:ring-offset-slate-900 ${
                     isActive
                       ? 'bg-white/[0.05] text-white shadow-sm'
                       : 'text-unni-muted hover:bg-white/[0.03] hover:text-slate-200'
                   }`
                 }
               >
-                <span className="flex items-center opacity-90">{item.icon}</span>
+                <span className="flex items-center opacity-90" aria-hidden="true">{item.icon}</span>
                 <span>{item.label}</span>
               </NavLink>
             ))}
@@ -96,11 +112,13 @@ export const Navbar: React.FC = () => {
               </span>
             </div>
             <button
+              type="button"
               onClick={handleSignOut}
               title="Encerrar Sessão"
-              className="ml-2 rounded-lg p-1.5 text-unni-muted transition-colors hover:bg-rose-500/10 hover:text-rose-400"
+              aria-label="Encerrar Sessão do Sistema"
+              className="ml-2 rounded-lg p-1.5 text-unni-muted transition-colors hover:bg-rose-500/10 hover:text-rose-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-rose-400 focus-visible:ring-offset-2 focus-visible:ring-offset-slate-900"
             >
-              <LogoutIcon fontSize="small" />
+              <LogoutIcon fontSize="small" aria-hidden="true" />
             </button>
           </div>
         </div>
@@ -110,6 +128,7 @@ export const Navbar: React.FC = () => {
       {mobileOpen && (
         <div
           onClick={() => setMobileOpen(false)}
+          aria-hidden="true"
           className="fixed inset-0 z-30 bg-black/70 backdrop-blur-sm md:hidden"
         />
       )}

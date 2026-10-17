@@ -34,8 +34,9 @@ export const ContactList: React.FC<ContactListProps> = ({
 
   if (loading) {
     return (
-      <div className="flex w-full items-center justify-center p-12">
+      <div className="flex w-full items-center justify-center p-12" role="status" aria-label="Carregando contatos...">
         <div className="h-8 w-8 animate-spin rounded-full border-2 border-unni-accent border-t-transparent" />
+        <span className="sr-only">Carregando contatos...</span>
       </div>
     );
   }
@@ -43,7 +44,7 @@ export const ContactList: React.FC<ContactListProps> = ({
   if (contacts.length === 0) {
     return (
       <div className="flex flex-col items-center justify-center rounded-2xl border border-unni-border bg-unni-card/50 p-12 text-center">
-        <div className="mb-3 rounded-full bg-unni-input p-4 text-unni-accent">
+        <div className="mb-3 rounded-full bg-unni-input p-4 text-unni-accent" aria-hidden="true">
           <PersonIcon fontSize="large" />
         </div>
         <h3 className="text-base font-semibold text-slate-100">Nenhum contato encontrado</h3>
@@ -57,7 +58,7 @@ export const ContactList: React.FC<ContactListProps> = ({
   return (
     <>
       <div className="overflow-x-auto rounded-2xl border border-unni-border bg-unni-card shadow-sm">
-        <table className="w-full text-left text-sm text-slate-300">
+        <table className="w-full text-left text-sm text-slate-300" aria-label="Tabela de contatos cadastrados">
           <thead className="border-b border-[#223354] bg-[#0E1524] text-xs uppercase text-unni-muted">
             <tr>
               <th scope="col" className="px-6 py-4 font-semibold">Nome</th>
@@ -74,7 +75,7 @@ export const ContactList: React.FC<ContactListProps> = ({
                     <span className="text-sm font-semibold text-slate-100">{contact.name}</span>
                     {contact.email && (
                       <span className="flex items-center gap-1 text-xs text-unni-muted">
-                        <EmailIcon sx={{ fontSize: 13 }} />
+                        <EmailIcon sx={{ fontSize: 13 }} aria-hidden="true" />
                         {contact.email}
                       </span>
                     )}
@@ -82,7 +83,7 @@ export const ContactList: React.FC<ContactListProps> = ({
                 </td>
                 <td className="px-6 py-4 text-slate-300">
                   <div className="flex items-center gap-1.5">
-                    <PhoneIcon sx={{ fontSize: 15, color: '#54D1D6' }} />
+                    <PhoneIcon sx={{ fontSize: 15, color: '#54D1D6' }} aria-hidden="true" />
                     <span className="font-mono text-xs">{contact.phone}</span>
                   </div>
                 </td>
@@ -96,18 +97,20 @@ export const ContactList: React.FC<ContactListProps> = ({
                     <button
                       type="button"
                       onClick={() => onEdit(contact)}
-                      title="Editar Contato"
-                      className="rounded-lg p-1.5 text-unni-muted transition hover:bg-white/[0.05] hover:text-unni-accent"
+                      title={`Editar contato ${contact.name}`}
+                      aria-label={`Editar contato ${contact.name}`}
+                      className="rounded-lg p-1.5 text-unni-muted transition hover:bg-white/[0.05] hover:text-unni-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-400 focus-visible:ring-offset-2 focus-visible:ring-offset-slate-900"
                     >
-                      <EditIcon sx={{ fontSize: 18 }} />
+                      <EditIcon sx={{ fontSize: 18 }} aria-hidden="true" />
                     </button>
                     <button
                       type="button"
                       onClick={() => setSelectedDeleteId(contact.id)}
-                      title="Excluir Contato"
-                      className="rounded-lg p-1.5 text-unni-muted transition hover:bg-rose-500/10 hover:text-rose-400"
+                      title={`Excluir contato ${contact.name}`}
+                      aria-label={`Excluir contato ${contact.name}`}
+                      className="rounded-lg p-1.5 text-unni-muted transition hover:bg-rose-500/10 hover:text-rose-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-rose-400 focus-visible:ring-offset-2 focus-visible:ring-offset-slate-900"
                     >
-                      <DeleteIcon sx={{ fontSize: 18 }} />
+                      <DeleteIcon sx={{ fontSize: 18 }} aria-hidden="true" />
                     </button>
                   </div>
                 </td>

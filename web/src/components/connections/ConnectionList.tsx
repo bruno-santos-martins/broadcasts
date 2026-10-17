@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import {
   PhoneOutlined as PhoneIcon,
   PeopleOutlined as PeopleIcon,
+  EditOutlined as EditIcon,
   DeleteOutlined as DeleteIcon,
   CheckCircleOutlined as ConnectedIcon,
   RadioButtonUnchecked as DisconnectedIcon,
@@ -13,12 +14,14 @@ import { ConfirmModal } from '../common/ConfirmModal';
 interface ConnectionListProps {
   connections: Connection[];
   loading: boolean;
+  onEdit?: (connection: Connection) => void;
   onDelete: (id: string) => Promise<void>;
 }
 
 export const ConnectionList: React.FC<ConnectionListProps> = ({
   connections,
   loading,
+  onEdit,
   onDelete,
 }) => {
   const navigate = useNavigate();
@@ -26,8 +29,9 @@ export const ConnectionList: React.FC<ConnectionListProps> = ({
 
   if (loading) {
     return (
-      <div className="flex w-full items-center justify-center p-12">
+      <div className="flex w-full items-center justify-center p-12" role="status" aria-label="Carregando conexões...">
         <div className="h-8 w-8 animate-spin rounded-full border-2 border-unni-accent border-t-transparent" />
+        <span className="sr-only">Carregando conexões...</span>
       </div>
     );
   }
@@ -35,7 +39,7 @@ export const ConnectionList: React.FC<ConnectionListProps> = ({
   if (connections.length === 0) {
     return (
       <div className="flex flex-col items-center justify-center rounded-2xl border border-unni-border bg-unni-card/50 p-12 text-center">
-        <div className="mb-3 rounded-full bg-unni-input p-4 text-unni-accent">
+        <div className="mb-3 rounded-full bg-unni-input p-4 text-unni-accent" aria-hidden="true">
           <PhoneIcon fontSize="large" />
         </div>
         <h3 className="text-base font-semibold text-slate-100">Nenhuma conexão cadastrada</h3>
@@ -70,16 +74,16 @@ export const ConnectionList: React.FC<ConnectionListProps> = ({
                     }`}
                   >
                     {isConnected ? (
-                      <ConnectedIcon sx={{ fontSize: 13 }} />
+                      <ConnectedIcon sx={{ fontSize: 13 }} aria-hidden="true" />
                     ) : (
-                      <DisconnectedIcon sx={{ fontSize: 13 }} />
+                      <DisconnectedIcon sx={{ fontSize: 13 }} aria-hidden="true" />
                     )}
                     {isConnected ? 'Ativo' : 'Inativo'}
                   </span>
                 </div>
 
                 <div className="mt-3.5 flex items-center gap-2 text-sm text-slate-300">
-                  <PhoneIcon sx={{ fontSize: 17, color: '#8E9EB5' }} />
+                  <PhoneIcon sx={{ fontSize: 17, color: '#8E9EB5' }} aria-hidden="true" />
                   <span className="font-mono text-xs">{conn.phone}</span>
                 </div>
 
@@ -92,20 +96,35 @@ export const ConnectionList: React.FC<ConnectionListProps> = ({
                 <button
                   type="button"
                   onClick={() => navigate(`/contacts?connectionId=${conn.id}`)}
-                  className="inline-flex items-center gap-1.5 text-xs font-semibold text-unni-accent transition hover:underline"
+                  className="inline-flex items-center gap-1.5 rounded-lg px-2 py-1 text-xs font-semibold text-unni-accent transition hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-400 focus-visible:ring-offset-2 focus-visible:ring-offset-slate-900"
                 >
-                  <PeopleIcon sx={{ fontSize: 16 }} />
+                  <PeopleIcon sx={{ fontSize: 16 }} aria-hidden="true" />
                   Gerenciar Contatos
                 </button>
 
-                <button
-                  type="button"
-                  onClick={() => setSelectedDeleteId(conn.id)}
-                  title="Excluir Conexão"
-                  className="rounded-lg p-1.5 text-unni-muted transition hover:bg-rose-500/10 hover:text-rose-400"
-                >
-                  <DeleteIcon sx={{ fontSize: 18 }} />
-                </button>
+                <div className="flex items-center gap-1">
+                  {onEdit && (
+                    <button
+                      type="button"
+                      onClick={() => onEdit(conn)}
+                      title={`Editar conexão ${conn.name}`}
+                      aria-label={`Editar conexão ${conn.name}`}
+                      className="rounded-lg p-1.5 text-unni-muted transition hover:bg-white/[0.05] hover:text-unni-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-400 focus-visible:ring-offset-2 focus-visible:ring-offset-slate-900"
+                    >
+                      <EditIcon sx={{ fontSize: 18 }} aria-hidden="true" />
+                    </button>
+                  )}
+
+                  <button
+                    type="button"
+                    onClick={() => setSelectedDeleteId(conn.id)}
+                    title={`Excluir conexão ${conn.name}`}
+                    aria-label={`Excluir conexão ${conn.name}`}
+                    className="rounded-lg p-1.5 text-unni-muted transition hover:bg-rose-500/10 hover:text-rose-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-rose-400 focus-visible:ring-offset-2 focus-visible:ring-offset-slate-900"
+                  >
+                    <DeleteIcon sx={{ fontSize: 18 }} aria-hidden="true" />
+                  </button>
+                </div>
               </div>
             </div>
           );

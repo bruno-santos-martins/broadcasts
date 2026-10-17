@@ -3,6 +3,7 @@ import {
   DeleteOutlined as DeleteIcon,
   ScheduleSend as BroadcastEmptyIcon,
   VisibilityOutlined as ViewIcon,
+  EditOutlined as EditIcon,
 } from '@mui/icons-material';
 import type { Broadcast } from '../../types/broadcast';
 import type { Contact } from '../../types/contact';
@@ -13,6 +14,7 @@ interface BroadcastListProps {
   broadcasts: Broadcast[];
   contacts?: Contact[];
   loading: boolean;
+  onUpdateMessage?: (id: string, message: string) => Promise<void>;
   onDelete: (id: string) => Promise<void>;
 }
 
@@ -20,10 +22,12 @@ export const BroadcastList: React.FC<BroadcastListProps> = ({
   broadcasts,
   contacts = [],
   loading,
+  onUpdateMessage,
   onDelete,
 }) => {
   const [selectedDeleteId, setSelectedDeleteId] = useState<string | null>(null);
   const [selectedViewBroadcast, setSelectedViewBroadcast] = useState<Broadcast | null>(null);
+  const [isInitialEditMode, setIsInitialEditMode] = useState(false);
 
   const formatDate = (dateStr?: string | null) => {
     if (!dateStr) return '25/09/2022 18:10';
@@ -61,65 +65,97 @@ export const BroadcastList: React.FC<BroadcastListProps> = ({
 
   return (
     <>
-      <div className="flex flex-col divide-y divide-[#223354]">
+      <ul
+        role="list"
+        aria-label="Lista de disparos de mensagens"
+        className="flex flex-col divide-y divide-[#223354] p-0 m-0 list-none"
+      >
         {broadcasts.map((item) => {
           const isScheduled = item.status === 'SCHEDULED';
+          const displayDate = isScheduled ? formatDate(item.scheduledFor) : formatDate(item.sentAt || item.createdAt);
 
           return (
-            <div
+            <li
               key={item.id}
-              onClick={() => setSelectedViewBroadcast(item)}
-              title="Clique para ver a mensagem completa"
-              className="group flex cursor-pointer items-center justify-between py-3.5 px-2 rounded-xl transition-all duration-150 hover:bg-[#1E2E4E]/50 hover:border-l-2 hover:border-l-unni-accent"
+              className="group flex items-center justify-between py-2 px-1 rounded-xl transition-all duration-150 hover:bg-[#1E2E4E]/30"
             >
-              <div className="flex flex-col gap-1 pr-3 min-w-0 flex-1">
-                <div className="flex items-center gap-2">
-                  <span className="text-sm text-slate-200 font-medium group-hover:text-white">
-                    {isScheduled ? formatDate(item.scheduledFor) : formatDate(item.sentAt || item.createdAt)}
-                  </span>
-                  <span className="opacity-0 group-hover:opacity-100 transition-opacity text-unni-accent text-[11px] flex items-center gap-0.5">
-                    <ViewIcon sx={{ fontSize: 13 }} />
-                    Ver mensagem
+              {/* Botão semântico acessível por teclado para abrir o modal de detalhes */}
+              <button
+                type="button"
+                onClick={() => setSelectedViewBroadcast(item)}
+                aria-label={`Ver detalhes do disparo de ${displayDate}: ${item.message.slice(0, 40)}...`}
+                className="flex flex-1 items-center justify-between min-w-0 text-left py-2 px-2.5 rounded-lg transition-colors hover:bg-[#1E2E4E]/60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-400 focus-visible:ring-offset-2 focus-visible:ring-offset-slate-900 mr-2"
+              >
+                <div className="flex flex-col gap-1 pr-3 min-w-0 flex-1">
+                  <div className="flex items-center gap-2">
+                    <span className="text-sm text-slate-200 font-medium group-hover:text-white">
+                      {displayDate}
+                    </span>
+                    <span className="text-unni-accent text-[11px] flex items-center gap-0.5">
+                      <ViewIcon sx={{ fontSize: 13 }} aria-hidden="true" />
+                      Ver mensagem
+                    </span>
+                  </div>
+                  <span className="text-xs text-unni-muted line-clamp-1 group-hover:text-slate-300">
+                    {item.message}
                   </span>
                 </div>
-                <span className="text-xs text-unni-muted line-clamp-1 group-hover:text-slate-300">
-                  {item.message}
-                </span>
-              </div>
 
-              <div className="flex items-center gap-3 shrink-0">
-                {isScheduled ? (
-                  <span className="inline-flex items-center justify-center rounded-full bg-[#163242] px-3.5 py-1 text-xs font-medium text-unni-accent border border-[#20485C]">
-                    Agendado
-                  </span>
-                ) : (
-                  <span className="inline-flex items-center justify-center rounded-full bg-[#163628] px-3.5 py-1 text-xs font-medium text-[#34D399] border border-[#1E4D38]">
-                    Enviado
-                  </span>
+                <div className="shrink-0 mr-1">
+                  {isScheduled ? (
+                    <span className="inline-flex items-center justify-center rounded-full bg-[#163242] px-3.5 py-1 text-xs font-medium text-unni-accent border border-[#20485C]">
+                      Agendado
+                    </span>
+                  ) : (
+                    <span className="inline-flex items-center justify-center rounded-full bg-[#163628] px-3.5 py-1 text-xs font-medium text-[#34D399] border border-[#1E4D38]">
+                      Enviado
+                    </span>
+                  )}
+                </div>
+              </button>
+
+              <div className="flex items-center gap-1 shrink-0">
+                {onUpdateMessage && (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setSelectedViewBroadcast(item);
+                      setIsInitialEditMode(true);
+                    }}
+                    title={`Editar mensagem do disparo de ${displayDate}`}
+                    aria-label={`Editar mensagem do disparo de ${displayDate}`}
+                    className="rounded-lg p-2 text-unni-muted transition hover:bg-white/[0.05] hover:text-unni-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-400 focus-visible:ring-offset-2 focus-visible:ring-offset-slate-900"
+                  >
+                    <EditIcon sx={{ fontSize: 18 }} aria-hidden="true" />
+                  </button>
                 )}
 
+                {/* Botão semântico independente para exclusão */}
                 <button
                   type="button"
-                  onClick={(e) => {
-                    e.stopPropagation(); // Evita abrir o modal de detalhes ao clicar na lixeira
-                    setSelectedDeleteId(item.id);
-                  }}
-                  title="Excluir Disparo"
-                  className="rounded-md p-1 text-unni-muted opacity-40 transition hover:bg-rose-500/10 hover:text-rose-400 group-hover:opacity-100"
+                  onClick={() => setSelectedDeleteId(item.id)}
+                  title={`Excluir disparo de ${displayDate}`}
+                  aria-label={`Excluir disparo de ${displayDate}`}
+                  className="rounded-lg p-2 text-unni-muted transition hover:bg-rose-500/10 hover:text-rose-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-rose-400 focus-visible:ring-offset-2 focus-visible:ring-offset-slate-900"
                 >
-                  <DeleteIcon sx={{ fontSize: 16 }} />
+                  <DeleteIcon sx={{ fontSize: 18 }} aria-hidden="true" />
                 </button>
               </div>
-            </div>
+            </li>
           );
         })}
-      </div>
+      </ul>
 
-      {/* Modal de Exibição Integral da Mensagem com Lista de Destinatários */}
+      {/* Modal de Exibição Integral da Mensagem com Lista de Destinatários e Edição */}
       <BroadcastDetailModal
         broadcast={selectedViewBroadcast}
         contacts={contacts}
-        onClose={() => setSelectedViewBroadcast(null)}
+        initialEditMode={isInitialEditMode}
+        onUpdateMessage={onUpdateMessage}
+        onClose={() => {
+          setSelectedViewBroadcast(null);
+          setIsInitialEditMode(false);
+        }}
       />
 
       {/* Modal de Confirmação de Exclusão */}

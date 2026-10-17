@@ -28,6 +28,7 @@ export const BroadcastPage: React.FC = () => {
     refresh,
     addBroadcast,
     removeBroadcast,
+    updateMessage,
   } = useBroadcasts('ALL', selectedConnectionId || undefined);
 
   return (
@@ -48,16 +49,17 @@ export const BroadcastPage: React.FC = () => {
             type="button"
             onClick={() => refresh()}
             title="Recarregar Disparos"
-            className="self-start rounded-xl border border-unni-border bg-unni-card p-2.5 text-unni-muted transition hover:text-white sm:self-auto"
+            aria-label="Recarregar lista de disparos"
+            className="self-start rounded-xl border border-unni-border bg-unni-card p-2.5 text-unni-muted transition hover:text-white sm:self-auto focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-400 focus-visible:ring-offset-2 focus-visible:ring-offset-slate-900"
           >
-            <RefreshIcon sx={{ fontSize: 18 }} />
+            <RefreshIcon sx={{ fontSize: 18 }} aria-hidden="true" />
           </button>
         </div>
       </div>
 
       <div className="p-8 md:p-12">
         {error && (
-          <div className="mb-6 rounded-xl bg-rose-500/10 border border-rose-500/30 p-4 text-xs text-rose-400">
+          <div role="alert" className="mb-6 rounded-xl bg-rose-500/10 border border-rose-500/30 p-4 text-xs text-rose-400">
             {error}
           </div>
         )}
@@ -101,6 +103,7 @@ export const BroadcastPage: React.FC = () => {
                 broadcasts={broadcasts}
                 contacts={contacts}
                 loading={loading}
+                onUpdateMessage={updateMessage}
                 onDelete={removeBroadcast}
               />
             </div>

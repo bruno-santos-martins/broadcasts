@@ -22,16 +22,45 @@ export const BroadcastFilter: React.FC<BroadcastFilterProps> = ({
     { key: 'SENT', label: 'Enviadas', count: counts.sent },
   ];
 
+  const handleKeyDown = (e: React.KeyboardEvent, index: number) => {
+    let nextIndex = index;
+    if (e.key === 'ArrowRight') {
+      nextIndex = (index + 1) % tabs.length;
+    } else if (e.key === 'ArrowLeft') {
+      nextIndex = (index - 1 + tabs.length) % tabs.length;
+    } else if (e.key === 'Home') {
+      nextIndex = 0;
+    } else if (e.key === 'End') {
+      nextIndex = tabs.length - 1;
+    } else {
+      return;
+    }
+
+    e.preventDefault();
+    onFilterChange(tabs[nextIndex].key);
+    const nextTabElement = document.getElementById(`tab-${tabs[nextIndex].key.toLowerCase()}`);
+    nextTabElement?.focus();
+  };
+
   return (
-    <div className="flex items-center gap-1 rounded-xl bg-[#0E1524] p-1 border border-[#25385C]">
-      {tabs.map((tab) => {
+    <div
+      role="tablist"
+      aria-label="Filtro de status de disparos"
+      className="flex items-center gap-1 rounded-xl bg-[#0E1524] p-1 border border-[#25385C]"
+    >
+      {tabs.map((tab, index) => {
         const isActive = currentFilter === tab.key;
         return (
           <button
             key={tab.key}
+            id={`tab-${tab.key.toLowerCase()}`}
             type="button"
+            role="tab"
+            aria-selected={isActive}
+            tabIndex={isActive ? 0 : -1}
             onClick={() => onFilterChange(tab.key)}
-            className={`flex items-center gap-2 rounded-lg px-3 py-1.5 text-xs font-medium transition-all ${
+            onKeyDown={(e) => handleKeyDown(e, index)}
+            className={`flex items-center gap-2 rounded-lg px-3 py-1.5 text-xs font-medium transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-400 focus-visible:ring-offset-2 focus-visible:ring-offset-slate-900 ${
               isActive
                 ? 'bg-[#1E2E4E] text-unni-accent border border-[#2E4674] shadow-sm'
                 : 'bg-transparent text-[#8E9EB5] border border-transparent hover:text-white hover:bg-white/[0.04]'

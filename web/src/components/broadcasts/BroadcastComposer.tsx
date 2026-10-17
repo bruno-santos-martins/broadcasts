@@ -2,8 +2,6 @@ import React, { useState, useEffect } from 'react';
 import {
   TextField,
   MenuItem,
-  Checkbox,
-  FormControlLabel,
 } from '@mui/material';
 import {
   Schedule as ScheduleIcon,
@@ -117,6 +115,8 @@ export const BroadcastComposer: React.FC<BroadcastComposerProps> = ({
       <form onSubmit={handleSubmit} className="flex flex-col gap-4">
         {feedback && (
           <div
+            role={feedback.type === 'error' ? 'alert' : 'status'}
+            aria-live="polite"
             className={`rounded-xl p-3 text-xs border ${
               feedback.type === 'success'
                 ? 'bg-emerald-500/10 border-emerald-500/30 text-emerald-300'
@@ -129,10 +129,11 @@ export const BroadcastComposer: React.FC<BroadcastComposerProps> = ({
 
         {/* Campo Input */}
         <div>
-          <label className="mb-1.5 block text-sm font-medium text-slate-300">
-            Input
+          <label htmlFor="broadcast-message-input" className="mb-1.5 block text-sm font-medium text-slate-300">
+            Input (Mensagem)
           </label>
           <TextField
+            id="broadcast-message-input"
             multiline
             rows={3}
             fullWidth
@@ -156,10 +157,11 @@ export const BroadcastComposer: React.FC<BroadcastComposerProps> = ({
 
         {/* Conexão Selector (Contatos) */}
         <div>
-          <label className="mb-1.5 block text-sm font-medium text-slate-300">
-            Contatos
+          <label htmlFor="broadcast-connection-select" className="mb-1.5 block text-sm font-medium text-slate-300">
+            Conexão WhatsApp
           </label>
           <TextField
+            id="broadcast-connection-select"
             select
             fullWidth
             size="small"
@@ -186,19 +188,24 @@ export const BroadcastComposer: React.FC<BroadcastComposerProps> = ({
           </TextField>
         </div>
 
-        {/* Seletor de Contatos Picker */}
-        <div>
+        {/* Seletor de Contatos Picker com Checkbox Nativo Semântico */}
+        <fieldset className="border-0 p-0 m-0">
           <div className="mb-1.5 flex items-center justify-between">
-            <label className="text-sm font-medium text-slate-300">
-              Seletor de contato ({selectedContactIds.length}/{filteredContacts.length})
-            </label>
+            <legend className="text-sm font-medium text-slate-300 p-0">
+              Seletor de contatos ({selectedContactIds.length}/{filteredContacts.length})
+            </legend>
             {filteredContacts.length > 0 && (
               <button
                 type="button"
                 onClick={handleToggleSelectAll}
-                className="flex items-center gap-1 text-[11px] font-medium text-unni-accent hover:underline"
+                className="flex items-center gap-1 rounded-md px-1.5 py-0.5 text-[11px] font-medium text-unni-accent hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-400 focus-visible:ring-offset-2 focus-visible:ring-offset-slate-900"
+                aria-label={
+                  selectedContactIds.length === filteredContacts.length
+                    ? 'Desmarcar todos os contatos'
+                    : 'Selecionar todos os contatos'
+                }
               >
-                <CheckAllIcon sx={{ fontSize: 14 }} />
+                <CheckAllIcon sx={{ fontSize: 14 }} aria-hidden="true" />
                 {selectedContactIds.length === filteredContacts.length
                   ? 'Desmarcar todos'
                   : 'Selecionar todos'}
@@ -206,7 +213,12 @@ export const BroadcastComposer: React.FC<BroadcastComposerProps> = ({
             )}
           </div>
 
-          <div className="max-h-40 overflow-y-auto rounded-xl border border-unni-border bg-unni-input p-2.5">
+          <div
+            tabIndex={0}
+            role="region"
+            aria-label="Lista rolável de contatos para envio"
+            className="max-h-40 overflow-y-auto rounded-xl border border-unni-border bg-unni-input p-2.5 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-cyan-400"
+          >
             {filteredContacts.length === 0 ? (
               <p className="p-3 text-center text-xs text-unni-muted">
                 Nenhum contato cadastrado para esta conexão.
@@ -215,61 +227,65 @@ export const BroadcastComposer: React.FC<BroadcastComposerProps> = ({
               <div className="flex flex-col divide-y divide-white/[0.04]">
                 {filteredContacts.map((contact) => {
                   const isChecked = selectedContactIds.includes(contact.id);
+                  const checkboxId = `contact-checkbox-${contact.id}`;
+
                   return (
-                    <label
+                    <div
                       key={contact.id}
-                      className="flex cursor-pointer items-center justify-between py-2 px-2 text-xs transition-colors hover:bg-white/[0.03]"
+                      className="flex items-center justify-between py-2 px-2 text-xs transition-colors hover:bg-white/[0.03] rounded-lg"
                     >
-                      <div className="flex items-center gap-2.5">
-                        <Checkbox
-                          size="small"
+                      <div className="flex items-center gap-2.5 flex-1 min-w-0">
+                        <input
+                          type="checkbox"
+                          id={checkboxId}
                           checked={isChecked}
                           onChange={() => handleToggleContact(contact.id)}
-                          sx={{
-                            p: 0,
-                            color: '#475569',
-                            '&.Mui-checked': { color: '#54D1D6' },
-                          }}
+                          className="h-4 w-4 rounded border-[#2A3E66] bg-[#0E1524] text-cyan-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-400 focus-visible:ring-offset-1 focus-visible:ring-offset-slate-900 cursor-pointer accent-[#54D1D6]"
                         />
-                        <span className="font-medium text-slate-200">{contact.name}</span>
+                        <label
+                          htmlFor={checkboxId}
+                          className="cursor-pointer font-medium text-slate-200 truncate flex-1 select-none"
+                        >
+                          {contact.name}
+                        </label>
                       </div>
-                      <span className="font-mono text-unni-muted text-[11px]">
+                      <span className="font-mono text-unni-muted text-[11px] shrink-0 ml-2">
                         {contact.phone}
                       </span>
-                    </label>
+                    </div>
                   );
                 })}
               </div>
             )}
           </div>
-        </div>
+        </fieldset>
 
         {/* Agendamento Opcional */}
         <div className="rounded-xl border border-unni-border/70 bg-unni-input/60 p-3">
-          <FormControlLabel
-            control={
-              <Checkbox
-                checked={isScheduled}
-                onChange={(e) => setIsScheduled(e.target.checked)}
-                size="small"
-                sx={{
-                  color: '#475569',
-                  '&.Mui-checked': { color: '#54D1D6' },
-                }}
-              />
-            }
-            label={
-              <span className="text-xs font-semibold text-slate-300 flex items-center gap-1.5">
-                <ScheduleIcon sx={{ fontSize: 16, color: '#54D1D6' }} />
-                Agendar para data/hora futura
-              </span>
-            }
-            sx={{ m: 0 }}
-          />
+          <div className="flex items-center gap-2.5">
+            <input
+              type="checkbox"
+              id="broadcast-is-scheduled"
+              checked={isScheduled}
+              onChange={(e) => setIsScheduled(e.target.checked)}
+              className="h-4 w-4 rounded border-[#2A3E66] bg-[#0E1524] text-cyan-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-400 focus-visible:ring-offset-1 focus-visible:ring-offset-slate-900 cursor-pointer accent-[#54D1D6]"
+            />
+            <label
+              htmlFor="broadcast-is-scheduled"
+              className="cursor-pointer text-xs font-semibold text-slate-300 flex items-center gap-1.5 select-none"
+            >
+              <ScheduleIcon sx={{ fontSize: 16, color: '#54D1D6' }} aria-hidden="true" />
+              Agendar para data/hora futura
+            </label>
+          </div>
 
           {isScheduled && (
             <div className="mt-2.5">
+              <label htmlFor="broadcast-scheduled-datetime" className="sr-only">
+                Data e hora do agendamento
+              </label>
               <TextField
+                id="broadcast-scheduled-datetime"
                 type="datetime-local"
                 size="small"
                 fullWidth
@@ -291,11 +307,11 @@ export const BroadcastComposer: React.FC<BroadcastComposerProps> = ({
           )}
         </div>
 
-        {/* Botão idêntico ao da imagem com turquesa #54D1D6 e texto escuro */}
+        {/* Botão de Envio com foco visível */}
         <button
           type="submit"
           disabled={isSubmitting || filteredContacts.length === 0}
-          className="mt-3 flex w-full items-center justify-center rounded-xl bg-unni-accent py-3.5 px-4 text-sm font-semibold text-unni-accentText transition-all hover:bg-unni-accentHover active:scale-[0.99] disabled:cursor-not-allowed disabled:opacity-50 shadow-sm"
+          className="mt-3 flex w-full items-center justify-center rounded-xl bg-unni-accent py-3.5 px-4 text-sm font-semibold text-unni-accentText transition-all hover:bg-unni-accentHover active:scale-[0.99] disabled:cursor-not-allowed disabled:opacity-50 shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-400 focus-visible:ring-offset-2 focus-visible:ring-offset-slate-900"
         >
           {isSubmitting ? 'Processando...' : 'Agenda Mensagens (Broadcast)'}
         </button>

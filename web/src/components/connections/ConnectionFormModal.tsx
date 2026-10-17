@@ -7,16 +7,18 @@ import {
   TextField,
   Button,
 } from '@mui/material';
-import type { CreateConnectionDTO } from '../../types/connection';
+import type { Connection, CreateConnectionDTO, UpdateConnectionDTO } from '../../types/connection';
 
 interface ConnectionFormModalProps {
   open: boolean;
+  connection?: Connection | null;
   onClose: () => void;
-  onSubmit: (dto: CreateConnectionDTO) => Promise<void>;
+  onSubmit: (dto: CreateConnectionDTO | UpdateConnectionDTO) => Promise<void>;
 }
 
 export const ConnectionFormModal: React.FC<ConnectionFormModalProps> = ({
   open,
+  connection,
   onClose,
   onSubmit,
 }) => {
@@ -24,6 +26,16 @@ export const ConnectionFormModal: React.FC<ConnectionFormModalProps> = ({
   const [phone, setPhone] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
+
+  React.useEffect(() => {
+    if (connection) {
+      setName(connection.name);
+      setPhone(connection.phone);
+    } else {
+      setName('');
+      setPhone('');
+    }
+  }, [connection, open]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -38,13 +50,13 @@ export const ConnectionFormModal: React.FC<ConnectionFormModalProps> = ({
       await onSubmit({
         name: name.trim(),
         phone: phone.trim(),
-        status: 'CONNECTED',
+        status: connection?.status || 'CONNECTED',
       });
       setName('');
       setPhone('');
       onClose();
     } catch (err: unknown) {
-      setErrorMessage(err instanceof Error ? err.message : 'Erro ao criar conexão.');
+      setErrorMessage(err instanceof Error ? err.message : 'Erro ao salvar conexão.');
     } finally {
       setIsSubmitting(false);
     }
@@ -56,10 +68,11 @@ export const ConnectionFormModal: React.FC<ConnectionFormModalProps> = ({
       onClose={onClose}
       fullWidth
       maxWidth="sm"
+      aria-labelledby="connection-dialog-title"
       slotProps={{
         paper: {
           sx: {
-            backgroundColor: '#1B2946', // Azul do fundo, ligeiramente mais claro
+            backgroundColor: '#1B2946',
             border: '1px solid #2A3E66',
             borderRadius: '1rem',
             color: '#F1F5F9',
@@ -68,23 +81,32 @@ export const ConnectionFormModal: React.FC<ConnectionFormModalProps> = ({
         },
       }}
     >
-      <form onSubmit={handleSubmit}>
-        <DialogTitle sx={{ color: '#FFFFFF', fontWeight: 600, borderBottom: '1px solid #223354', px: 3, py: 2.5 }}>
-          Nova Conexão WhatsApp
+      <form onSubmit={handleSubmit} noValidate>
+        <DialogTitle
+          id="connection-dialog-title"
+          sx={{ color: '#FFFFFF', fontWeight: 600, borderBottom: '1px solid #223354', px: 3, py: 2.5 }}
+        >
+          {connection ? 'Editar Conexão WhatsApp' : 'Nova Conexão WhatsApp'}
         </DialogTitle>
 
         <DialogContent sx={{ display: 'flex', flexDirection: 'column', gap: 2.5, pt: 3, px: 3 }}>
           {errorMessage && (
-            <div className="rounded-xl bg-rose-500/10 border border-rose-500/30 p-3 text-xs text-rose-400">
+            <div
+              role="alert"
+              aria-live="assertive"
+              className="rounded-xl bg-rose-500/10 border border-rose-500/30 p-3 text-xs text-rose-400"
+            >
               {errorMessage}
             </div>
           )}
 
           <div>
-            <label className="mb-1.5 block text-xs font-semibold text-slate-300">
+            <label htmlFor="conn-name" className="mb-1.5 block text-xs font-semibold text-slate-300">
               Nome de Identificação
             </label>
             <TextField
+              id="conn-name"
+              autoFocus
               fullWidth
               size="small"
               placeholder="Ex: Comercial 01, Suporte Matriz"
@@ -105,10 +127,11 @@ export const ConnectionFormModal: React.FC<ConnectionFormModalProps> = ({
           </div>
 
           <div>
-            <label className="mb-1.5 block text-xs font-semibold text-slate-300">
+            <label htmlFor="conn-phone" className="mb-1.5 block text-xs font-semibold text-slate-300">
               Telefone WhatsApp (com DDI e DDD)
             </label>
             <TextField
+              id="conn-phone"
               fullWidth
               size="small"
               placeholder="+55 11 98765-4321"
@@ -131,6 +154,7 @@ export const ConnectionFormModal: React.FC<ConnectionFormModalProps> = ({
 
         <DialogActions sx={{ p: 3, borderTop: '1px solid #223354', gap: 1 }}>
           <Button
+            type="button"
             onClick={onClose}
             disabled={isSubmitting}
             sx={{
@@ -139,6 +163,7 @@ export const ConnectionFormModal: React.FC<ConnectionFormModalProps> = ({
               fontWeight: 500,
               px: 2,
               '&:hover': { backgroundColor: 'rgba(255, 255, 255, 0.05)', color: '#FFFFFF' },
+              '&:focus-visible': { outline: '2px solid #54D1D6', outlineOffset: '2px' },
             }}
           >
             Cancelar
@@ -157,9 +182,10 @@ export const ConnectionFormModal: React.FC<ConnectionFormModalProps> = ({
               px: 2.5,
               py: 1,
               '&:hover': { backgroundColor: '#45C4C9', boxShadow: 'none' },
+              '&:focus-visible': { outline: '2px solid #54D1D6', outlineOffset: '2px' },
             }}
           >
-            {isSubmitting ? 'Salvando...' : 'Salvar Conexão'}
+            {isSubmitting ? 'Salvando...' : connection ? 'Atualizar Conexão' : 'Salvar Conexão'}
           </Button>
         </DialogActions>
       </form>

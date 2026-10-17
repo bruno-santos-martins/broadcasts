@@ -29,6 +29,7 @@ export const ContactsPage: React.FC = () => {
 
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingContact, setEditingContact] = useState<Contact | null>(null);
+  const newContactButtonRef = React.useRef<HTMLButtonElement>(null);
 
   useEffect(() => {
     const conn = searchParams.get('connectionId') || '';
@@ -52,6 +53,14 @@ export const ContactsPage: React.FC = () => {
   const handleOpenEditModal = (contact: Contact) => {
     setEditingContact(contact);
     setIsModalOpen(true);
+  };
+
+  const handleCloseModal = () => {
+    setIsModalOpen(false);
+    // Retorna o foco ao botão "Novo Contato" (ou elemento de origem)
+    setTimeout(() => {
+      newContactButtonRef.current?.focus();
+    }, 50);
   };
 
   const handleModalSubmit = async (dto: CreateContactDTO | UpdateContactDTO) => {
@@ -81,17 +90,19 @@ export const ContactsPage: React.FC = () => {
               type="button"
               onClick={() => refresh()}
               title="Recarregar Lista"
-              className="rounded-xl border border-unni-border bg-unni-card p-2.5 text-unni-muted transition hover:text-white"
+              aria-label="Recarregar lista de contatos"
+              className="rounded-xl border border-unni-border bg-unni-card p-2.5 text-unni-muted transition hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-400 focus-visible:ring-offset-2 focus-visible:ring-offset-slate-900"
             >
-              <RefreshIcon sx={{ fontSize: 18 }} />
+              <RefreshIcon sx={{ fontSize: 18 }} aria-hidden="true" />
             </button>
 
             <button
+              ref={newContactButtonRef}
               type="button"
               onClick={handleOpenCreateModal}
-              className="inline-flex items-center gap-2 rounded-xl bg-unni-accent px-4 py-2.5 text-sm font-semibold text-unni-accentText transition hover:bg-unni-accentHover active:scale-[0.98] shadow-sm"
+              className="inline-flex items-center gap-2 rounded-xl bg-unni-accent px-4 py-2.5 text-sm font-semibold text-unni-accentText transition hover:bg-unni-accentHover active:scale-[0.98] shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-400 focus-visible:ring-offset-2 focus-visible:ring-offset-slate-900"
             >
-              <AddIcon sx={{ fontSize: 18 }} />
+              <AddIcon sx={{ fontSize: 18 }} aria-hidden="true" />
               Novo Contato
             </button>
           </div>
@@ -101,23 +112,28 @@ export const ContactsPage: React.FC = () => {
       <div className="p-8 md:p-12">
         <div className="max-w-7xl">
           {error && (
-            <div className="mb-6 rounded-xl bg-rose-500/10 border border-rose-500/30 p-4 text-xs text-rose-400">
+            <div role="alert" className="mb-6 rounded-xl bg-rose-500/10 border border-rose-500/30 p-4 text-xs text-rose-400">
               {error}
             </div>
           )}
 
           {/* Filter bar */}
-          <div className="mb-6 flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-unni-border bg-unni-card p-4">
+          <div
+            role="region"
+            aria-label="Filtro de contatos por conexão"
+            className="mb-6 flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-unni-border bg-unni-card p-4"
+          >
             <div className="flex items-center gap-2">
-              <FilterIcon sx={{ fontSize: 18, color: '#54D1D6' }} />
+              <FilterIcon sx={{ fontSize: 18, color: '#54D1D6' }} aria-hidden="true" />
               <span className="text-xs font-semibold text-slate-300">Filtrar por Conexão:</span>
             </div>
 
-            <div className="flex flex-wrap gap-2">
+            <div className="flex flex-wrap gap-2" role="group" aria-label="Opções de conexão">
               <button
                 type="button"
+                aria-pressed={selectedConnectionFilter === ''}
                 onClick={() => handleFilterChange('')}
-                className={`rounded-xl px-3.5 py-1.5 text-xs font-medium transition ${
+                className={`rounded-xl px-3.5 py-1.5 text-xs font-medium transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-400 focus-visible:ring-offset-2 focus-visible:ring-offset-slate-900 ${
                   selectedConnectionFilter === ''
                     ? 'bg-unni-accent/15 text-unni-accent border border-unni-accent/35 font-semibold'
                     : 'bg-[#0E1524] text-[#8E9EB5] hover:text-white hover:bg-[#1E2E4E] border border-[#25385C]'
@@ -130,8 +146,9 @@ export const ContactsPage: React.FC = () => {
                 <button
                   key={conn.id}
                   type="button"
+                  aria-pressed={selectedConnectionFilter === conn.id}
                   onClick={() => handleFilterChange(conn.id)}
-                  className={`rounded-xl px-3.5 py-1.5 text-xs font-medium transition ${
+                  className={`rounded-xl px-3.5 py-1.5 text-xs font-medium transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-400 focus-visible:ring-offset-2 focus-visible:ring-offset-slate-900 ${
                     selectedConnectionFilter === conn.id
                       ? 'bg-unni-accent/15 text-unni-accent border border-unni-accent/35 font-semibold'
                       : 'bg-[#0E1524] text-[#8E9EB5] hover:text-white hover:bg-[#1E2E4E] border border-[#25385C]'
@@ -158,7 +175,7 @@ export const ContactsPage: React.FC = () => {
             contact={editingContact}
             connections={connections}
             defaultConnectionId={selectedConnectionFilter || connections[0]?.id}
-            onClose={() => setIsModalOpen(false)}
+            onClose={handleCloseModal}
             onSubmit={handleModalSubmit}
           />
         </div>

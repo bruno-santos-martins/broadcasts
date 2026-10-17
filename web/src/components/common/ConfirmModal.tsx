@@ -33,10 +33,12 @@ export const ConfirmModal: React.FC<ConfirmModalProps> = ({
     <Dialog
       open={open}
       onClose={onClose}
+      aria-labelledby="confirm-modal-title"
+      aria-describedby="confirm-modal-description"
       slotProps={{
         paper: {
           sx: {
-            backgroundColor: '#1B2946', // Azul do fundo, ligeiramente mais claro
+            backgroundColor: '#1B2946',
             border: '1px solid #2A3E66',
             color: '#F1F5F9',
             borderRadius: '1rem',
@@ -48,16 +50,18 @@ export const ConfirmModal: React.FC<ConfirmModalProps> = ({
         },
       }}
     >
-      <DialogTitle sx={{ color: '#FFFFFF', fontWeight: 600, fontSize: '1.125rem', px: 3, pt: 2.5 }}>
+      <DialogTitle id="confirm-modal-title" sx={{ color: '#FFFFFF', fontWeight: 600, fontSize: '1.125rem', px: 3, pt: 2.5 }}>
         {title}
       </DialogTitle>
       <DialogContent sx={{ px: 3 }}>
-        <DialogContentText sx={{ color: '#8E9EB5', fontSize: '0.925rem' }}>
+        <DialogContentText id="confirm-modal-description" sx={{ color: '#8E9EB5', fontSize: '0.925rem' }}>
           {description}
         </DialogContentText>
       </DialogContent>
       <DialogActions sx={{ padding: '1.25rem', gap: '0.5rem' }}>
         <Button
+          type="button"
+          autoFocus
           onClick={onClose}
           sx={{
             color: '#8E9EB5',
@@ -68,11 +72,16 @@ export const ConfirmModal: React.FC<ConfirmModalProps> = ({
               backgroundColor: 'rgba(255, 255, 255, 0.05)',
               color: '#FFFFFF',
             },
+            '&:focus-visible': {
+              outline: '2px solid #54D1D6',
+              outlineOffset: '2px',
+            },
           }}
         >
           {cancelText}
         </Button>
         <Button
+          type="button"
           onClick={() => {
             onConfirm();
             onClose();
@@ -89,6 +98,10 @@ export const ConfirmModal: React.FC<ConfirmModalProps> = ({
             '&:hover': {
               backgroundColor: isDestructive ? '#DC2626' : '#45C4C9',
               boxShadow: 'none',
+            },
+            '&:focus-visible': {
+              outline: `2px solid ${isDestructive ? '#EF4444' : '#54D1D6'}`,
+              outlineOffset: '2px',
             },
           }}
         >

@@ -35,9 +35,17 @@ button {
   appearance: none;
 }
 
-button:focus-visible {
-  outline: 2px solid #54D1D6;
-  outline-offset: 1px;
+button:focus-visible,
+a:focus-visible,
+input:focus-visible,
+select:focus-visible,
+textarea:focus-visible,
+[role="button"]:focus-visible,
+[role="tab"]:focus-visible,
+[tabindex="0"]:focus-visible {
+  outline: 2px solid #54D1D6 !important;
+  outline-offset: 2px !important;
+  box-shadow: 0 0 0 4px rgba(12, 16, 25, 0.8) !important;
 }
 
 body {

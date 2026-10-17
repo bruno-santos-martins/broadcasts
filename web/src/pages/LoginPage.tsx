@@ -56,11 +56,13 @@ export const LoginPage: React.FC = () => {
 
         {/* Card Form */}
         <div className="rounded-2xl border border-unni-border bg-unni-card p-8 shadow-xl">
-          <div className="mb-6 flex rounded-xl bg-[#0E1524] p-1 border border-[#25385C]">
+          <div role="tablist" aria-label="Opções de acesso" className="mb-6 flex rounded-xl bg-[#0E1524] p-1 border border-[#25385C]">
             <button
               type="button"
+              role="tab"
+              aria-selected={!isRegister}
               onClick={() => setIsRegister(false)}
-              className={`w-1/2 rounded-lg py-2 text-xs font-semibold transition-all ${
+              className={`w-1/2 rounded-lg py-2 text-xs font-semibold transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-400 focus-visible:ring-offset-2 focus-visible:ring-offset-slate-900 ${
                 !isRegister
                   ? 'bg-[#1E2E4E] text-unni-accent shadow-sm border border-[#2E4674]'
                   : 'bg-transparent text-[#8E9EB5] border border-transparent hover:text-white'
@@ -70,8 +72,10 @@ export const LoginPage: React.FC = () => {
             </button>
             <button
               type="button"
+              role="tab"
+              aria-selected={isRegister}
               onClick={() => setIsRegister(true)}
-              className={`w-1/2 rounded-lg py-2 text-xs font-semibold transition-all ${
+              className={`w-1/2 rounded-lg py-2 text-xs font-semibold transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-400 focus-visible:ring-offset-2 focus-visible:ring-offset-slate-900 ${
                 isRegister
                   ? 'bg-[#1E2E4E] text-unni-accent shadow-sm border border-[#2E4674]'
                   : 'bg-transparent text-[#8E9EB5] border border-transparent hover:text-white'
@@ -82,18 +86,20 @@ export const LoginPage: React.FC = () => {
           </div>
 
           {error && (
-            <div className="mb-4 rounded-xl bg-rose-500/10 border border-rose-500/30 p-3 text-xs text-rose-400">
+            <div role="alert" className="mb-4 rounded-xl bg-rose-500/10 border border-rose-500/30 p-3 text-xs text-rose-400">
               {error}
             </div>
           )}
 
-          <form onSubmit={handleSubmit} className="flex flex-col gap-4">
+          <form onSubmit={handleSubmit} noValidate className="flex flex-col gap-4">
             {isRegister && (
               <div>
-                <label className="mb-1 block text-xs font-semibold text-slate-300">
+                <label htmlFor="login-name" className="mb-1 block text-xs font-semibold text-slate-300">
                   Nome Completo
                 </label>
                 <TextField
+                  id="login-name"
+                  autoFocus
                   fullWidth
                   size="small"
                   placeholder="Seu nome completo"
@@ -101,7 +107,7 @@ export const LoginPage: React.FC = () => {
                   onChange={(e) => setName(e.target.value)}
                   slotProps={{
                     input: {
-                      startAdornment: <PersonIcon sx={{ color: '#8E9EB5', mr: 1, fontSize: 18 }} />,
+                      startAdornment: <PersonIcon sx={{ color: '#8E9EB5', mr: 1, fontSize: 18 }} aria-hidden="true" />,
                     },
                   }}
                   sx={{
@@ -119,10 +125,12 @@ export const LoginPage: React.FC = () => {
             )}
 
             <div>
-              <label className="mb-1 block text-xs font-semibold text-slate-300">
+              <label htmlFor="login-email" className="mb-1 block text-xs font-semibold text-slate-300">
                 E-mail Corporativo
               </label>
               <TextField
+                id="login-email"
+                autoFocus={!isRegister}
                 fullWidth
                 size="small"
                 type="email"
@@ -131,7 +139,7 @@ export const LoginPage: React.FC = () => {
                 onChange={(e) => setEmail(e.target.value)}
                 slotProps={{
                   input: {
-                    startAdornment: <EmailIcon sx={{ color: '#8E9EB5', mr: 1, fontSize: 18 }} />,
+                    startAdornment: <EmailIcon sx={{ color: '#8E9EB5', mr: 1, fontSize: 18 }} aria-hidden="true" />,
                   },
                 }}
                 sx={{
@@ -148,10 +156,11 @@ export const LoginPage: React.FC = () => {
             </div>
 
             <div>
-              <label className="mb-1 block text-xs font-semibold text-slate-300">
+              <label htmlFor="login-password" className="mb-1 block text-xs font-semibold text-slate-300">
                 Senha de Acesso
               </label>
               <TextField
+                id="login-password"
                 fullWidth
                 size="small"
                 type="password"
@@ -160,7 +169,7 @@ export const LoginPage: React.FC = () => {
                 onChange={(e) => setPassword(e.target.value)}
                 slotProps={{
                   input: {
-                    startAdornment: <LockIcon sx={{ color: '#8E9EB5', mr: 1, fontSize: 18 }} />,
+                    startAdornment: <LockIcon sx={{ color: '#8E9EB5', mr: 1, fontSize: 18 }} aria-hidden="true" />,
                   },
                 }}
                 sx={{
@@ -179,10 +188,10 @@ export const LoginPage: React.FC = () => {
             <button
               type="submit"
               disabled={loading}
-              className="mt-2 flex w-full items-center justify-center gap-2 rounded-xl bg-unni-accent py-3 text-sm font-semibold text-unni-accentText transition-all hover:bg-unni-accentHover active:scale-[0.99] disabled:opacity-50 shadow-sm"
+              className="mt-2 flex w-full items-center justify-center gap-2 rounded-xl bg-unni-accent py-3 text-sm font-semibold text-unni-accentText transition-all hover:bg-unni-accentHover active:scale-[0.99] disabled:opacity-50 shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-400 focus-visible:ring-offset-2 focus-visible:ring-offset-slate-900"
             >
               <span>{loading ? 'Processando...' : isRegister ? 'Cadastrar e Entrar' : 'Entrar no Sistema'}</span>
-              <ArrowIcon sx={{ fontSize: 18 }} />
+              <ArrowIcon sx={{ fontSize: 18 }} aria-hidden="true" />
             </button>
           </form>
         </div>
