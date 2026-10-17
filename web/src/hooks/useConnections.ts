@@ -1,4 +1,11 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect } from 'react';
+import {
+  collection,
+  query,
+  where,
+  onSnapshot,
+} from 'firebase/firestore';
+import { db } from '../services/firebase';
 import type { Connection, CreateConnectionDTO, UpdateConnectionDTO } from '../types/connection';
 import * as connectionService from '../services/connectionService';
 import { useAuth } from './useAuth';
@@ -9,50 +16,67 @@ export const useConnections = () => {
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
 
-  const loadConnections = useCallback(async () => {
-    if (!user) return;
+  // Sincronização em tempo real nativa com onSnapshot do Cloud Firestore
+  useEffect(() => {
+    if (!user) {
+      setConnections([]);
+      setLoading(false);
+      return;
+    }
+
     setLoading(true);
     setError(null);
-    try {
-      const data = await connectionService.fetchConnections(user.id);
-      setConnections(data);
-    } catch (err: unknown) {
-      const message = err instanceof Error ? err.message : 'Falha ao carregar conexões.';
-      setError(message);
-    } finally {
-      setLoading(false);
-    }
-  }, [user]);
 
-  useEffect(() => {
-    loadConnections();
-  }, [loadConnections]);
+    const q = query(
+      collection(db, 'connections'),
+      where('userId', '==', user.id)
+    );
+
+    const unsubscribe = onSnapshot(
+      q,
+      (snapshot) => {
+        const list = snapshot.docs.map((docSnap) =>
+          connectionService.mapDocToConnection(docSnap.id, docSnap.data())
+        );
+
+        // Ordena no client por createdAt descrescente para garantir ordenação estável
+        list.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+
+        setConnections(list);
+        setLoading(false);
+      },
+      (err) => {
+        console.error('[useConnections] Erro no onSnapshot:', err);
+        setError('Falha ao sincronizar conexões em tempo real.');
+        setLoading(false);
+      }
+    );
+
+    return () => unsubscribe();
+  }, [user]);
 
   const addConnection = async (dto: CreateConnectionDTO): Promise<Connection> => {
     if (!user) throw new Error('Usuário não autenticado.');
-    const created = await connectionService.createConnection(user.id, dto);
-    setConnections((prev) => [created, ...prev]);
-    return created;
+    return connectionService.createConnection(user.id, dto);
   };
 
-  const updateConnection = async (id: string, dto: UpdateConnectionDTO): Promise<Connection> => {
+  const updateConnection = async (id: string, dto: UpdateConnectionDTO): Promise<void> => {
     if (!user) throw new Error('Usuário não autenticado.');
-    const updated = await connectionService.updateConnection(user.id, id, dto);
-    setConnections((prev) => prev.map((item) => (item.id === id ? updated : item)));
-    return updated;
+    await connectionService.updateConnection(id, dto);
   };
 
   const removeConnection = async (id: string): Promise<void> => {
     if (!user) throw new Error('Usuário não autenticado.');
-    await connectionService.deleteConnection(user.id, id);
-    setConnections((prev) => prev.filter((item) => item.id !== id));
+    await connectionService.deleteConnection(id);
   };
 
   return {
     connections,
     loading,
     error,
-    refresh: loadConnections,
+    refresh: () => {
+      // O onSnapshot mantém a lista sempre atualizada automaticamente
+    },
     addConnection,
     updateConnection,
     removeConnection,

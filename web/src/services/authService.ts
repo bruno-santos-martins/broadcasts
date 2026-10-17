@@ -1,76 +1,73 @@
+import {
+  createUserWithEmailAndPassword,
+  signInWithEmailAndPassword,
+  signOut as firebaseSignOut,
+  updateProfile,
+} from 'firebase/auth';
+import { auth } from './firebase';
 import type { User, AuthCredentials, RegisterCredentials } from '../types/auth';
 
-const STORAGE_KEY = '@unnichat:auth_user';
+/**
+ * Registra um novo usuário no Firebase Authentication.
+ * Atribui nome opcional via updateProfile.
+ */
+export const registerUser = async (
+  email: string,
+  password: string,
+  name?: string
+): Promise<User> => {
+  const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+  const fbUser = userCredential.user;
 
-const DEFAULT_MOCK_USER: User = {
-  id: 'user-123',
-  email: 'admin@unnichat.com',
-  name: 'Admin UnniChat',
-};
-
-const delay = (ms = 300) => new Promise((resolve) => setTimeout(resolve, ms));
-
-export const getStoredUser = (): User | null => {
-  try {
-    const raw = localStorage.getItem(STORAGE_KEY);
-    if (raw) {
-      return JSON.parse(raw) as User;
+  if (name && fbUser) {
+    try {
+      await updateProfile(fbUser, { displayName: name });
+    } catch (profileErr) {
+      console.warn('[authService] Aviso ao atualizar displayName:', profileErr);
     }
-  } catch (err) {
-    console.error('Erro ao ler usuário salvo no localStorage:', err);
-  }
-  // Valor padrão inicial para o mock de prototipagem
-  return DEFAULT_MOCK_USER;
-};
-
-export const saveStoredUser = (user: User | null): void => {
-  try {
-    if (user) {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(user));
-    } else {
-      localStorage.removeItem(STORAGE_KEY);
-    }
-  } catch (err) {
-    console.error('Erro ao salvar usuário no localStorage:', err);
-  }
-};
-
-export const login = async (credentials: AuthCredentials): Promise<User> => {
-  await delay(400);
-
-  // Simula validação básica
-  if (!credentials.email) {
-    throw new Error('E-mail é obrigatório.');
   }
 
-  const authenticatedUser: User = {
-    id: credentials.email === DEFAULT_MOCK_USER.email ? DEFAULT_MOCK_USER.id : `user-${Date.now()}`,
-    email: credentials.email,
-    name: credentials.email.split('@')[0].toUpperCase(),
+  return {
+    id: fbUser.uid,
+    email: fbUser.email || email,
+    name: name || fbUser.displayName || email.split('@')[0],
   };
+};
 
-  saveStoredUser(authenticatedUser);
-  return authenticatedUser;
+/**
+ * Autentica um usuário existente no Firebase Authentication com e-mail e senha.
+ */
+export const loginUser = async (email: string, password: string): Promise<User> => {
+  const userCredential = await signInWithEmailAndPassword(auth, email, password);
+  const fbUser = userCredential.user;
+
+  return {
+    id: fbUser.uid,
+    email: fbUser.email || email,
+    name: fbUser.displayName || email.split('@')[0],
+  };
+};
+
+/**
+ * Encerra a sessão ativa do usuário no Firebase Authentication.
+ */
+export const logoutUser = async (): Promise<void> => {
+  await firebaseSignOut(auth);
+};
+
+// Aliases para manter total compatibilidade com chamadas existentes no AuthContext/LoginPage
+export const login = async (credentials: AuthCredentials): Promise<User> => {
+  if (!credentials.email || !credentials.password) {
+    throw new Error('E-mail e senha são obrigatórios.');
+  }
+  return loginUser(credentials.email, credentials.password);
 };
 
 export const register = async (credentials: RegisterCredentials): Promise<User> => {
-  await delay(400);
-
-  if (!credentials.email || !credentials.name) {
-    throw new Error('Nome e e-mail são obrigatórios.');
+  if (!credentials.email || !credentials.password) {
+    throw new Error('E-mail e senha são obrigatórios.');
   }
-
-  const newUser: User = {
-    id: `user-${Date.now()}`,
-    email: credentials.email,
-    name: credentials.name,
-  };
-
-  saveStoredUser(newUser);
-  return newUser;
+  return registerUser(credentials.email, credentials.password, credentials.name);
 };
 
-export const signOut = async (): Promise<void> => {
-  await delay(200);
-  saveStoredUser(null);
-};
+export const signOut = logoutUser;

@@ -1,4 +1,6 @@
 import React, { createContext, useState, useEffect, useCallback, useMemo } from 'react';
+import { onAuthStateChanged } from 'firebase/auth';
+import { auth } from '../services/firebase';
 import type { User, AuthCredentials, RegisterCredentials, AuthState } from '../types/auth';
 import * as authService from '../services/authService';
 
@@ -14,11 +16,22 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [user, setUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(true);
 
-  // Inicializa o estado com o usuário mockado pré-existente
+  // Escuta o estado de autenticação real em tempo real via Firebase Auth SDK
   useEffect(() => {
-    const stored = authService.getStoredUser();
-    setUser(stored);
-    setIsLoading(false);
+    const unsubscribe = onAuthStateChanged(auth, (fbUser) => {
+      if (fbUser) {
+        setUser({
+          id: fbUser.uid,
+          email: fbUser.email || '',
+          name: fbUser.displayName || fbUser.email?.split('@')[0] || 'Usuário',
+        });
+      } else {
+        setUser(null);
+      }
+      setIsLoading(false);
+    });
+
+    return () => unsubscribe();
   }, []);
 
   const handleLogin = useCallback(async (credentials: AuthCredentials) => {

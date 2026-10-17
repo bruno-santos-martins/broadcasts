@@ -1,131 +1,144 @@
+import {
+  collection,
+  doc,
+  addDoc,
+  updateDoc,
+  deleteDoc,
+  getDocs,
+  getDoc,
+  query,
+  where,
+  serverTimestamp,
+  Timestamp,
+} from 'firebase/firestore';
+import { db } from './firebase';
 import type { Contact, CreateContactDTO, UpdateContactDTO } from '../types/contact';
 
-const STORAGE_KEY = '@unnichat:contacts';
+const CONTACTS_COLLECTION = 'contacts';
 
-const INITIAL_CONTACTS: Contact[] = [
-  {
-    id: 'ct-1',
-    userId: 'user-123',
-    connectionId: 'conn-1',
-    name: 'Carlos Oliveira',
-    phone: '+55 11 99999-1111',
-    email: 'carlos@empresa.com',
-    createdAt: '2025-01-12T09:15:00.000Z',
-  },
-  {
-    id: 'ct-2',
-    userId: 'user-123',
-    connectionId: 'conn-1',
-    name: 'Mariana Santos',
-    phone: '+55 11 98888-2222',
-    email: 'mariana.santos@gmail.com',
-    createdAt: '2025-01-14T11:20:00.000Z',
-  },
-  {
-    id: 'ct-3',
-    userId: 'user-123',
-    connectionId: 'conn-2',
-    name: 'Roberto Fernandes',
-    phone: '+55 21 97777-3333',
-    email: 'roberto@parceiro.com.br',
-    createdAt: '2025-01-16T15:45:00.000Z',
-  },
-  {
-    id: 'ct-4',
-    userId: 'user-123',
-    connectionId: 'conn-2',
-    name: 'Fernanda Lima',
-    phone: '+55 31 96666-4444',
-    email: 'fernanda.lima@tech.io',
-    createdAt: '2025-01-18T17:10:00.000Z',
-  },
-];
-
-const delay = (ms = 250) => new Promise((resolve) => setTimeout(resolve, ms));
-
-const getStoredContacts = (): Contact[] => {
-  try {
-    const raw = localStorage.getItem(STORAGE_KEY);
-    if (raw) {
-      return JSON.parse(raw) as Contact[];
-    }
-  } catch (err) {
-    console.error('Erro ao ler contatos do localStorage:', err);
+/**
+ * Converte documento Firestore para o tipo Contact da aplicação
+ */
+export const mapDocToContact = (id: string, data: Record<string, unknown>): Contact => {
+  let createdAtStr = new Date().toISOString();
+  if (data.createdAt instanceof Timestamp) {
+    createdAtStr = data.createdAt.toDate().toISOString();
+  } else if (typeof data.createdAt === 'string') {
+    createdAtStr = data.createdAt;
   }
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(INITIAL_CONTACTS));
-  return INITIAL_CONTACTS;
+
+  return {
+    id,
+    userId: String(data.userId || ''),
+    connectionId: String(data.connectionId || ''),
+    name: String(data.name || ''),
+    phone: String(data.phone || ''),
+    email: data.email ? String(data.email) : undefined,
+    createdAt: createdAtStr,
+  };
 };
 
-const persistContacts = (contacts: Contact[]): void => {
-  try {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(contacts));
-  } catch (err) {
-    console.error('Erro ao salvar contatos no localStorage:', err);
-  }
+/**
+ * Busca contatos do usuário na coleção raiz /contacts
+ * Suporta filtro opcional por connectionId
+ */
+export const fetchContacts = async (
+  userId: string,
+  connectionId?: string
+): Promise<Contact[]> => {
+  const q = connectionId
+    ? query(
+        collection(db, CONTACTS_COLLECTION),
+        where('userId', '==', userId),
+        where('connectionId', '==', connectionId)
+      )
+    : query(
+        collection(db, CONTACTS_COLLECTION),
+        where('userId', '==', userId)
+      );
+
+  const snapshot = await getDocs(q);
+  return snapshot.docs.map((d) => mapDocToContact(d.id, d.data()));
 };
 
-export const fetchContacts = async (userId: string, connectionId?: string): Promise<Contact[]> => {
-  await delay();
-  const all = getStoredContacts();
-  return all.filter((item) => {
-    if (item.userId !== userId) return false;
-    if (connectionId && item.connectionId !== connectionId) return false;
-    return true;
-  });
-};
-
+/**
+ * Busca um contato por ID isolado pelo userId
+ */
 export const fetchContactById = async (userId: string, id: string): Promise<Contact | null> => {
-  await delay();
-  const all = getStoredContacts();
-  const found = all.find((item) => item.id === id && item.userId === userId);
-  return found || null;
+  const docRef = doc(db, CONTACTS_COLLECTION, id);
+  const snapshot = await getDoc(docRef);
+  if (!snapshot.exists()) return null;
+  const data = snapshot.data();
+  if (data.userId !== userId) return null;
+  return mapDocToContact(snapshot.id, data);
 };
 
-export const createContact = async (userId: string, dto: CreateContactDTO): Promise<Contact> => {
-  await delay();
-  const all = getStoredContacts();
-  const newContact: Contact = {
-    id: `ct-${Date.now()}`,
+/**
+ * Cria um contato na coleção raiz /contacts
+ * Suporta (userId, connectionId, name, phone, email?) ou (userId, dto)
+ */
+export const createContact = async (
+  userId: string,
+  connectionIdOrDto: string | CreateContactDTO,
+  nameParam?: string,
+  phoneParam?: string,
+  emailParam?: string
+): Promise<Contact> => {
+  const isDto = typeof connectionIdOrDto === 'object';
+  const connectionId = isDto ? connectionIdOrDto.connectionId : connectionIdOrDto;
+  const name = isDto ? connectionIdOrDto.name : (nameParam || '');
+  const phone = isDto ? connectionIdOrDto.phone : (phoneParam || '');
+  const email = isDto ? connectionIdOrDto.email : emailParam;
+
+  const docData = {
     userId,
-    connectionId: dto.connectionId,
-    name: dto.name,
-    phone: dto.phone,
-    email: dto.email,
+    connectionId,
+    name: name.trim(),
+    phone: phone.trim(),
+    email: email ? email.trim() : null,
+    createdAt: serverTimestamp(),
+    updatedAt: serverTimestamp(),
+  };
+
+  const docRef = await addDoc(collection(db, CONTACTS_COLLECTION), docData);
+
+  return {
+    id: docRef.id,
+    userId,
+    connectionId,
+    name: docData.name,
+    phone: docData.phone,
+    email: docData.email || undefined,
     createdAt: new Date().toISOString(),
   };
-
-  const updated = [newContact, ...all];
-  persistContacts(updated);
-  return newContact;
 };
 
+/**
+ * Atualiza um contato existente na coleção raiz /contacts
+ * Suporta (id, name, phone) ou (id, dto)
+ */
 export const updateContact = async (
-  userId: string,
   id: string,
-  dto: UpdateContactDTO
-): Promise<Contact> => {
-  await delay();
-  const all = getStoredContacts();
-  const index = all.findIndex((item) => item.id === id && item.userId === userId);
+  nameOrDto: string | UpdateContactDTO,
+  phoneParam?: string
+): Promise<void> => {
+  const isDto = typeof nameOrDto === 'object';
+  const updateData: Record<string, unknown> = isDto
+    ? { ...nameOrDto, updatedAt: serverTimestamp() }
+    : {
+        name: nameOrDto.trim(),
+        ...(phoneParam ? { phone: phoneParam.trim() } : {}),
+        updatedAt: serverTimestamp(),
+      };
 
-  if (index === -1) {
-    throw new Error('Contato não encontrado.');
-  }
-
-  const updatedItem: Contact = {
-    ...all[index],
-    ...dto,
-  };
-
-  const updatedList = [...all];
-  updatedList[index] = updatedItem;
-  persistContacts(updatedList);
-  return updatedItem;
+  const docRef = doc(db, CONTACTS_COLLECTION, id);
+  await updateDoc(docRef, updateData);
 };
 
-export const deleteContact = async (userId: string, id: string): Promise<void> => {
-  await delay();
-  const all = getStoredContacts();
-  const filtered = all.filter((item) => !(item.id === id && item.userId === userId));
-  persistContacts(filtered);
+/**
+ * Exclui um contato na coleção raiz /contacts
+ */
+export const deleteContact = async (id: string): Promise<void> => {
+  const docRef = doc(db, CONTACTS_COLLECTION, id);
+  await deleteDoc(docRef);
 };

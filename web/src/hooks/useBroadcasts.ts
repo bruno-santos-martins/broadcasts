@@ -1,4 +1,11 @@
-import { useState, useEffect, useCallback, useMemo } from 'react';
+import { useState, useEffect, useMemo } from 'react';
+import {
+  collection,
+  query,
+  where,
+  onSnapshot,
+} from 'firebase/firestore';
+import { db } from '../services/firebase';
 import type { Broadcast, CreateBroadcastDTO, BroadcastFilterType } from '../types/broadcast';
 import * as broadcastService from '../services/broadcastService';
 import { useAuth } from './useAuth';
@@ -10,27 +17,53 @@ export const useBroadcasts = (initialFilter: BroadcastFilterType = 'ALL', connec
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
 
-  // Carrega sempre a totalidade dos disparos do usuário para manter os contadores fixos e corretos
-  const loadBroadcasts = useCallback(async () => {
-    if (!user) return;
+  // Sincronização em tempo real nativa com onSnapshot do Cloud Firestore
+  // Quando a Cloud Function processar e atualizar disparos agendados para SENT, a tela reflete instantaneamente!
+  useEffect(() => {
+    if (!user) {
+      setAllBroadcasts([]);
+      setLoading(false);
+      return;
+    }
+
     setLoading(true);
     setError(null);
-    try {
-      const data = await broadcastService.fetchBroadcasts(user.id, 'ALL', connectionId);
-      setAllBroadcasts(data);
-    } catch (err: unknown) {
-      const message = err instanceof Error ? err.message : 'Falha ao carregar disparos.';
-      setError(message);
-    } finally {
-      setLoading(false);
-    }
+
+    const q = connectionId
+      ? query(
+          collection(db, 'broadcasts'),
+          where('userId', '==', user.id),
+          where('connectionId', '==', connectionId)
+        )
+      : query(
+          collection(db, 'broadcasts'),
+          where('userId', '==', user.id)
+        );
+
+    const unsubscribe = onSnapshot(
+      q,
+      (snapshot) => {
+        const list = snapshot.docs.map((docSnap) =>
+          broadcastService.mapDocToBroadcast(docSnap.id, docSnap.data())
+        );
+
+        // Ordena por data decrescente (mais recentes primeiro)
+        list.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+
+        setAllBroadcasts(list);
+        setLoading(false);
+      },
+      (err) => {
+        console.error('[useBroadcasts] Erro no onSnapshot:', err);
+        setError('Falha ao sincronizar disparos em tempo real.');
+        setLoading(false);
+      }
+    );
+
+    return () => unsubscribe();
   }, [user, connectionId]);
 
-  useEffect(() => {
-    loadBroadcasts();
-  }, [loadBroadcasts]);
-
-  // Contadores fixos e imutáveis ao trocar de aba
+  // Contadores globais fixos e independentes da aba selecionada
   const counts = useMemo(() => {
     return {
       all: allBroadcasts.length,
@@ -39,7 +72,7 @@ export const useBroadcasts = (initialFilter: BroadcastFilterType = 'ALL', connec
     };
   }, [allBroadcasts]);
 
-  // Lista visível filtrada dinamicamente pela aba selecionada
+  // Lista visível filtrada dinamicamente conforme a aba
   const filteredBroadcasts = useMemo(() => {
     if (filter === 'SCHEDULED') {
       return allBroadcasts.filter((item) => item.status === 'SCHEDULED');
@@ -52,15 +85,17 @@ export const useBroadcasts = (initialFilter: BroadcastFilterType = 'ALL', connec
 
   const addBroadcast = async (dto: CreateBroadcastDTO): Promise<Broadcast> => {
     if (!user) throw new Error('Usuário não autenticado.');
-    const created = await broadcastService.createBroadcast(user.id, dto);
-    setAllBroadcasts((prev) => [created, ...prev]);
-    return created;
+    return broadcastService.createBroadcast(user.id, dto);
   };
 
   const removeBroadcast = async (id: string): Promise<void> => {
     if (!user) throw new Error('Usuário não autenticado.');
-    await broadcastService.deleteBroadcast(user.id, id);
-    setAllBroadcasts((prev) => prev.filter((item) => item.id !== id));
+    await broadcastService.deleteBroadcast(id);
+  };
+
+  const updateMessage = async (id: string, message: string): Promise<void> => {
+    if (!user) throw new Error('Usuário não autenticado.');
+    await broadcastService.updateBroadcastMessage(id, message);
   };
 
   return {
@@ -70,8 +105,11 @@ export const useBroadcasts = (initialFilter: BroadcastFilterType = 'ALL', connec
     setFilter,
     loading,
     error,
-    refresh: loadBroadcasts,
+    refresh: () => {
+      // onSnapshot mantém reatividade contínua
+    },
     addBroadcast,
     removeBroadcast,
+    updateMessage,
   };
 };

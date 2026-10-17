@@ -1,106 +1,121 @@
+import {
+  collection,
+  doc,
+  addDoc,
+  updateDoc,
+  deleteDoc,
+  getDocs,
+  getDoc,
+  query,
+  where,
+  serverTimestamp,
+  Timestamp,
+} from 'firebase/firestore';
+import { db } from './firebase';
 import type { Connection, CreateConnectionDTO, UpdateConnectionDTO } from '../types/connection';
 
-const STORAGE_KEY = '@unnichat:connections';
+const CONNECTIONS_COLLECTION = 'connections';
 
-const INITIAL_CONNECTIONS: Connection[] = [
-  {
-    id: 'conn-1',
-    userId: 'user-123',
-    name: 'WhatsApp Comercial',
-    phone: '+55 11 98765-4321',
-    status: 'CONNECTED',
-    createdAt: '2025-01-10T10:00:00.000Z',
-  },
-  {
-    id: 'conn-2',
-    userId: 'user-123',
-    name: 'Suporte SAC',
-    phone: '+55 11 91234-5678',
-    status: 'CONNECTED',
-    createdAt: '2025-01-15T14:30:00.000Z',
-  },
-];
-
-const delay = (ms = 250) => new Promise((resolve) => setTimeout(resolve, ms));
-
-const getStoredConnections = (): Connection[] => {
-  try {
-    const raw = localStorage.getItem(STORAGE_KEY);
-    if (raw) {
-      return JSON.parse(raw) as Connection[];
-    }
-  } catch (err) {
-    console.error('Erro ao ler conexões do localStorage:', err);
+/**
+ * Converte documento Firestore para o tipo Connection da aplicação
+ */
+export const mapDocToConnection = (id: string, data: Record<string, unknown>): Connection => {
+  let createdAtStr = new Date().toISOString();
+  if (data.createdAt instanceof Timestamp) {
+    createdAtStr = data.createdAt.toDate().toISOString();
+  } else if (typeof data.createdAt === 'string') {
+    createdAtStr = data.createdAt;
   }
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(INITIAL_CONNECTIONS));
-  return INITIAL_CONNECTIONS;
+
+  return {
+    id,
+    userId: String(data.userId || ''),
+    name: String(data.name || ''),
+    phone: String(data.phone || ''),
+    status: (data.status as Connection['status']) || 'CONNECTED',
+    createdAt: createdAtStr,
+  };
 };
 
-const persistConnections = (connections: Connection[]): void => {
-  try {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(connections));
-  } catch (err) {
-    console.error('Erro ao salvar conexões no localStorage:', err);
-  }
-};
-
+/**
+ * Busca todas as conexões do usuário na coleção raiz /connections
+ */
 export const fetchConnections = async (userId: string): Promise<Connection[]> => {
-  await delay();
-  const all = getStoredConnections();
-  return all.filter((item) => item.userId === userId);
+  const q = query(
+    collection(db, CONNECTIONS_COLLECTION),
+    where('userId', '==', userId)
+  );
+  const snapshot = await getDocs(q);
+  return snapshot.docs.map((d) => mapDocToConnection(d.id, d.data()));
 };
 
+/**
+ * Busca uma conexão específica por ID garantindo isolamento de usuário
+ */
 export const fetchConnectionById = async (userId: string, id: string): Promise<Connection | null> => {
-  await delay();
-  const all = getStoredConnections();
-  const found = all.find((item) => item.id === id && item.userId === userId);
-  return found || null;
+  const docRef = doc(db, CONNECTIONS_COLLECTION, id);
+  const snapshot = await getDoc(docRef);
+  if (!snapshot.exists()) return null;
+  const data = snapshot.data();
+  if (data.userId !== userId) return null;
+  return mapDocToConnection(snapshot.id, data);
 };
 
-export const createConnection = async (userId: string, dto: CreateConnectionDTO): Promise<Connection> => {
-  await delay();
-  const all = getStoredConnections();
-  const newConnection: Connection = {
-    id: `conn-${Date.now()}`,
+/**
+ * Cria uma nova conexão na coleção raiz /connections
+ * Suporta assinatura direta (userId, name, phone) ou com DTO
+ */
+export const createConnection = async (
+  userId: string,
+  nameOrDto: string | CreateConnectionDTO,
+  phoneParam?: string
+): Promise<Connection> => {
+  const isDto = typeof nameOrDto === 'object';
+  const name = isDto ? nameOrDto.name : nameOrDto;
+  const phone = isDto ? nameOrDto.phone : (phoneParam || '');
+  const status = isDto && nameOrDto.status ? nameOrDto.status : 'CONNECTED';
+
+  const docData = {
     userId,
-    name: dto.name,
-    phone: dto.phone,
-    status: dto.status || 'CONNECTED',
+    name: name.trim(),
+    phone: phone.trim(),
+    status,
+    createdAt: serverTimestamp(),
+    updatedAt: serverTimestamp(),
+  };
+
+  const docRef = await addDoc(collection(db, CONNECTIONS_COLLECTION), docData);
+
+  return {
+    id: docRef.id,
+    userId,
+    name: docData.name,
+    phone: docData.phone,
+    status,
     createdAt: new Date().toISOString(),
   };
-
-  const updated = [newConnection, ...all];
-  persistConnections(updated);
-  return newConnection;
 };
 
+/**
+ * Atualiza o nome ou campos de uma conexão na coleção raiz /connections
+ */
 export const updateConnection = async (
-  userId: string,
   id: string,
-  dto: UpdateConnectionDTO
-): Promise<Connection> => {
-  await delay();
-  const all = getStoredConnections();
-  const index = all.findIndex((item) => item.id === id && item.userId === userId);
+  nameOrDto: string | UpdateConnectionDTO
+): Promise<void> => {
+  const isDto = typeof nameOrDto === 'object';
+  const updateData: Record<string, unknown> = isDto
+    ? { ...nameOrDto, updatedAt: serverTimestamp() }
+    : { name: nameOrDto.trim(), updatedAt: serverTimestamp() };
 
-  if (index === -1) {
-    throw new Error('Conexão não encontrada.');
-  }
-
-  const updatedItem: Connection = {
-    ...all[index],
-    ...dto,
-  };
-
-  const updatedList = [...all];
-  updatedList[index] = updatedItem;
-  persistConnections(updatedList);
-  return updatedItem;
+  const docRef = doc(db, CONNECTIONS_COLLECTION, id);
+  await updateDoc(docRef, updateData);
 };
 
-export const deleteConnection = async (userId: string, id: string): Promise<void> => {
-  await delay();
-  const all = getStoredConnections();
-  const filtered = all.filter((item) => !(item.id === id && item.userId === userId));
-  persistConnections(filtered);
+/**
+ * Exclui uma conexão na coleção raiz /connections
+ */
+export const deleteConnection = async (id: string): Promise<void> => {
+  const docRef = doc(db, CONNECTIONS_COLLECTION, id);
+  await deleteDoc(docRef);
 };

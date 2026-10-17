@@ -2,9 +2,11 @@ import React, { useState } from 'react';
 import {
   DeleteOutlined as DeleteIcon,
   ScheduleSend as BroadcastEmptyIcon,
+  VisibilityOutlined as ViewIcon,
 } from '@mui/icons-material';
 import type { Broadcast } from '../../types/broadcast';
 import { ConfirmModal } from '../common/ConfirmModal';
+import { BroadcastDetailModal } from './BroadcastDetailModal';
 
 interface BroadcastListProps {
   broadcasts: Broadcast[];
@@ -18,6 +20,7 @@ export const BroadcastList: React.FC<BroadcastListProps> = ({
   onDelete,
 }) => {
   const [selectedDeleteId, setSelectedDeleteId] = useState<string | null>(null);
+  const [selectedViewBroadcast, setSelectedViewBroadcast] = useState<Broadcast | null>(null);
 
   const formatDate = (dateStr?: string | null) => {
     if (!dateStr) return '25/09/2022 18:10';
@@ -62,13 +65,21 @@ export const BroadcastList: React.FC<BroadcastListProps> = ({
           return (
             <div
               key={item.id}
-              className="group flex items-center justify-between py-3.5 px-1 transition-colors hover:bg-white/[0.02]"
+              onClick={() => setSelectedViewBroadcast(item)}
+              title="Clique para ver a mensagem completa"
+              className="group flex cursor-pointer items-center justify-between py-3.5 px-2 rounded-xl transition-all duration-150 hover:bg-[#1E2E4E]/50 hover:border-l-2 hover:border-l-unni-accent"
             >
-              <div className="flex flex-col gap-1 pr-3">
-                <span className="text-sm text-slate-200 font-normal">
-                  {isScheduled ? formatDate(item.scheduledFor) : formatDate(item.sentAt || item.createdAt)}
-                </span>
-                <span className="text-xs text-unni-muted line-clamp-1">
+              <div className="flex flex-col gap-1 pr-3 min-w-0 flex-1">
+                <div className="flex items-center gap-2">
+                  <span className="text-sm text-slate-200 font-medium group-hover:text-white">
+                    {isScheduled ? formatDate(item.scheduledFor) : formatDate(item.sentAt || item.createdAt)}
+                  </span>
+                  <span className="opacity-0 group-hover:opacity-100 transition-opacity text-unni-accent text-[11px] flex items-center gap-0.5">
+                    <ViewIcon sx={{ fontSize: 13 }} />
+                    Ver mensagem
+                  </span>
+                </div>
+                <span className="text-xs text-unni-muted line-clamp-1 group-hover:text-slate-300">
                   {item.message}
                 </span>
               </div>
@@ -86,7 +97,10 @@ export const BroadcastList: React.FC<BroadcastListProps> = ({
 
                 <button
                   type="button"
-                  onClick={() => setSelectedDeleteId(item.id)}
+                  onClick={(e) => {
+                    e.stopPropagation(); // Evita abrir o modal de detalhes ao clicar na lixeira
+                    setSelectedDeleteId(item.id);
+                  }}
                   title="Excluir Disparo"
                   className="rounded-md p-1 text-unni-muted opacity-40 transition hover:bg-rose-500/10 hover:text-rose-400 group-hover:opacity-100"
                 >
@@ -98,6 +112,13 @@ export const BroadcastList: React.FC<BroadcastListProps> = ({
         })}
       </div>
 
+      {/* Modal de Exibição Integral da Mensagem */}
+      <BroadcastDetailModal
+        broadcast={selectedViewBroadcast}
+        onClose={() => setSelectedViewBroadcast(null)}
+      />
+
+      {/* Modal de Confirmação de Exclusão */}
       <ConfirmModal
         open={Boolean(selectedDeleteId)}
         title="Excluir Registro de Disparo"
