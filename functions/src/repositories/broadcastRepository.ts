@@ -22,13 +22,20 @@ const FIRESTORE_BATCH_LIMIT = 500;
 export const findPendingScheduledBroadcasts = async (
   now: Timestamp
 ): Promise<QueryDocumentSnapshot<BroadcastDoc>[]> => {
+
   const snapshot = await db
     .collection(BROADCASTS_COLLECTION)
     .where('status', '==', 'SCHEDULED')
-    .where('scheduledAt', '<=', now)
     .get();
 
-  return snapshot.docs as QueryDocumentSnapshot<BroadcastDoc>[];
+  const allScheduled = snapshot.docs as QueryDocumentSnapshot<BroadcastDoc>[];
+
+  // Filtra em memória apenas as mensagens cujo horário agendado já venceu (scheduledAt <= now)
+  return allScheduled.filter((doc) => {
+    const data = doc.data();
+    if (!data.scheduledAt) return true;
+    return data.scheduledAt.toMillis() <= now.toMillis();
+  });
 };
 
 /**
