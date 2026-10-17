@@ -4,8 +4,8 @@
   "private": true,
   "description": "Monorepo para transmissões inteligentes de WhatsApp com Firebase e React Vite",
   "scripts": {
-    "dev": "concurrently -k -p \"[{name}]\" -n \"FUNCTIONS:WATCH,EMULATORS,WEB:VITE\" -c \"yellow.bold,blue.bold,cyan.bold\" \"npm --prefix functions run build:watch\" \"firebase emulators:start\" \"npm --prefix web run dev\"",
-    "dev:backend": "concurrently -k -p \"[{name}]\" -n \"FUNCTIONS:WATCH,EMULATORS\" -c \"yellow.bold,blue.bold\" \"npm --prefix functions run build:watch\" \"firebase emulators:start\"",
+    "dev": "concurrently -k -p \"[{name}]\" -n \"FUNCTIONS:WATCH,EMULATORS,WEB:VITE\" -c \"yellow.bold,blue.bold,cyan.bold\" \"npm --prefix functions run dev\" \"firebase emulators:start --project desafio-gcp-zap\" \"npm --prefix web run dev\"",
+    "dev:backend": "concurrently -k -p \"[{name}]\" -n \"FUNCTIONS:WATCH,EMULATORS\" -c \"yellow.bold,blue.bold\" \"npm --prefix functions run dev\" \"firebase emulators:start --project desafio-gcp-zap\"",
     "dev:frontend": "npm --prefix web run dev",
     "build": "npm --prefix functions run build && npm --prefix web run build",
     "emulators": "firebase emulators:start"
