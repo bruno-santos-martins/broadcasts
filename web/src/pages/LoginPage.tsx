@@ -14,8 +14,8 @@ export const LoginPage: React.FC = () => {
   const { login, register } = useAuth();
   const [isRegister, setIsRegister] = useState(false);
   const [name, setName] = useState('');
-  const [email, setEmail] = useState('admin@unnichat.com');
-  const [password, setPassword] = useState('123456');
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -185,10 +185,6 @@ export const LoginPage: React.FC = () => {
               <ArrowIcon sx={{ fontSize: 18 }} />
             </button>
           </form>
-
-          <div className="mt-6 rounded-xl bg-unni-input/60 p-3 text-center text-xs text-unni-muted border border-unni-border/50">
-            <span>Ambiente com dados mockados. Credencial padrão pré-preenchida.</span>
-          </div>
         </div>
       </div>
     </div>
