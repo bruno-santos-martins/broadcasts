@@ -8,10 +8,6 @@ service cloud.firestore {
       return request.auth != null && request.auth.uid != null;
     }
 
-    // Helper function para verificar propriedade do documento existente
-    function isOwner(userId) {
-      return isAuthenticated() && request.auth.uid == userId;
-    }
 
     // Coleção raiz: /connections
     match /connections/{connectionId} {
