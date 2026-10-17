@@ -5,17 +5,20 @@ import {
   VisibilityOutlined as ViewIcon,
 } from '@mui/icons-material';
 import type { Broadcast } from '../../types/broadcast';
+import type { Contact } from '../../types/contact';
 import { ConfirmModal } from '../common/ConfirmModal';
 import { BroadcastDetailModal } from './BroadcastDetailModal';
 
 interface BroadcastListProps {
   broadcasts: Broadcast[];
+  contacts?: Contact[];
   loading: boolean;
   onDelete: (id: string) => Promise<void>;
 }
 
 export const BroadcastList: React.FC<BroadcastListProps> = ({
   broadcasts,
+  contacts = [],
   loading,
   onDelete,
 }) => {
@@ -112,9 +115,10 @@ export const BroadcastList: React.FC<BroadcastListProps> = ({
         })}
       </div>
 
-      {/* Modal de Exibição Integral da Mensagem */}
+      {/* Modal de Exibição Integral da Mensagem com Lista de Destinatários */}
       <BroadcastDetailModal
         broadcast={selectedViewBroadcast}
+        contacts={contacts}
         onClose={() => setSelectedViewBroadcast(null)}
       />
 

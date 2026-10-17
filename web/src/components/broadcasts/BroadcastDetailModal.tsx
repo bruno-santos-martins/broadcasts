@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import {
   Dialog,
   DialogContent,
@@ -11,19 +11,45 @@ import {
   AccessTime as TimeIcon,
   Send as SendIcon,
   Group as GroupIcon,
+  Phone as PhoneIcon,
+  Email as EmailIcon,
+  Person as PersonIcon,
 } from '@mui/icons-material';
 import type { Broadcast } from '../../types/broadcast';
+import type { Contact } from '../../types/contact';
 
 interface BroadcastDetailModalProps {
   broadcast: Broadcast | null;
+  contacts?: Contact[];
   onClose: () => void;
 }
 
 export const BroadcastDetailModal: React.FC<BroadcastDetailModalProps> = ({
   broadcast,
+  contacts = [],
   onClose,
 }) => {
   const [copied, setCopied] = useState(false);
+
+  // Mapeia os IDs dos contatos selecionados para os objetos reais de contato
+  const resolvedContacts = useMemo(() => {
+    if (!broadcast || !broadcast.contactIds) return [];
+
+    return broadcast.contactIds.map((id) => {
+      const found = contacts.find((c) => c.id === id);
+      if (found) {
+        return found;
+      }
+      return {
+        id,
+        userId: broadcast.userId,
+        connectionId: broadcast.connectionId,
+        name: `Contato (${id.slice(0, 8)}...)`,
+        phone: 'Telefone não localizado',
+        createdAt: '',
+      } as Contact;
+    });
+  }, [broadcast, contacts]);
 
   if (!broadcast) return null;
 
@@ -70,6 +96,7 @@ export const BroadcastDetailModal: React.FC<BroadcastDetailModalProps> = ({
         },
       }}
     >
+      {/* Cabeçalho do Modal */}
       <div className="flex items-center justify-between border-b border-[#25385C] px-6 py-4">
         <div className="flex items-center gap-3">
           <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-[#0E1524] text-unni-accent border border-[#25385C]">
@@ -77,7 +104,7 @@ export const BroadcastDetailModal: React.FC<BroadcastDetailModalProps> = ({
           </div>
           <div>
             <h3 className="text-base font-semibold text-white">Visualizar Disparo</h3>
-            <p className="text-xs text-unni-muted">Conteúdo completo da mensagem transmitida</p>
+            <p className="text-xs text-unni-muted">Detalhes da transmissão e lista de destinatários</p>
           </div>
         </div>
 
@@ -94,10 +121,10 @@ export const BroadcastDetailModal: React.FC<BroadcastDetailModalProps> = ({
       </div>
 
       <DialogContent sx={{ p: 3 }}>
-        {/* Metadados: Status, Data e Destinatários */}
-        <div className="mb-5 grid grid-cols-2 gap-3 sm:grid-cols-3">
+        {/* Metadados: Status e Data */}
+        <div className="mb-5 grid grid-cols-2 gap-3">
           <div className="rounded-xl border border-[#25385C] bg-[#0E1524] p-3">
-            <span className="text-[11px] font-medium text-unni-muted">Status</span>
+            <span className="text-[11px] font-medium text-unni-muted">Status do Disparo</span>
             <div className="mt-1">
               {isScheduled ? (
                 <span className="inline-flex items-center rounded-full bg-[#163242] px-2.5 py-0.5 text-xs font-medium text-unni-accent border border-[#20485C]">
@@ -119,13 +146,55 @@ export const BroadcastDetailModal: React.FC<BroadcastDetailModalProps> = ({
               {isScheduled ? formatDate(broadcast.scheduledFor) : formatDate(broadcast.sentAt || broadcast.createdAt)}
             </p>
           </div>
+        </div>
 
-          <div className="col-span-2 sm:col-span-1 rounded-xl border border-[#25385C] bg-[#0E1524] p-3">
-            <span className="text-[11px] font-medium text-unni-muted">Destinatários</span>
-            <p className="mt-1 flex items-center gap-1.5 text-xs font-medium text-slate-200">
+        {/* Seção de Destinatários Listados */}
+        <div className="mb-5">
+          <div className="mb-2 flex items-center justify-between">
+            <label className="flex items-center gap-1.5 text-xs font-semibold text-slate-300">
               <GroupIcon sx={{ fontSize: 14 }} className="text-unni-accent" />
-              {broadcast.contactIds?.length || 0} contato(s)
-            </p>
+              Destinatários ({resolvedContacts.length})
+            </label>
+            <span className="text-[11px] text-unni-muted">
+              {resolvedContacts.length === 1 ? '1 contato selecionado' : `${resolvedContacts.length} contatos selecionados`}
+            </span>
+          </div>
+
+          <div className="max-h-44 overflow-y-auto rounded-xl border border-[#25385C] bg-[#0E1524] p-2 divide-y divide-[#1D2B44]">
+            {resolvedContacts.length === 0 ? (
+              <div className="p-3 text-center text-xs text-unni-muted">
+                Nenhum destinatário registrado para este disparo.
+              </div>
+            ) : (
+              resolvedContacts.map((contact) => (
+                <div
+                  key={contact.id}
+                  className="flex items-center justify-between py-2 px-2.5 transition-colors hover:bg-white/[0.02]"
+                >
+                  <div className="flex items-center gap-2.5 min-w-0">
+                    <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-[#1E2E4E] border border-[#2E4674] text-xs font-semibold text-unni-accent">
+                      {contact.name.charAt(0).toUpperCase() || <PersonIcon sx={{ fontSize: 14 }} />}
+                    </div>
+                    <div className="min-w-0">
+                      <p className="text-xs font-medium text-slate-200 truncate">
+                        {contact.name}
+                      </p>
+                      {contact.email && (
+                        <p className="flex items-center gap-1 text-[11px] text-unni-muted truncate">
+                          <EmailIcon sx={{ fontSize: 11 }} />
+                          {contact.email}
+                        </p>
+                      )}
+                    </div>
+                  </div>
+
+                  <div className="flex items-center gap-1 text-xs font-medium text-slate-300 bg-[#162238] px-2.5 py-1 rounded-lg border border-[#25385C] shrink-0 ml-2">
+                    <PhoneIcon sx={{ fontSize: 11 }} className="text-unni-accent" />
+                    <span>{contact.phone}</span>
+                  </div>
+                </div>
+              ))
+            )}
           </div>
         </div>
 
@@ -133,7 +202,7 @@ export const BroadcastDetailModal: React.FC<BroadcastDetailModalProps> = ({
         <div>
           <div className="mb-2 flex items-center justify-between">
             <label className="text-xs font-semibold text-slate-300">
-              Mensagem Completa ({broadcast.message.length} caracteres)
+              Mensagem ({broadcast.message.length} caracteres)
             </label>
             <button
               type="button"
@@ -154,13 +223,13 @@ export const BroadcastDetailModal: React.FC<BroadcastDetailModalProps> = ({
             </button>
           </div>
 
-          <div className="max-h-60 overflow-y-auto rounded-xl border border-[#25385C] bg-[#0E1524] p-4 text-sm text-slate-200 leading-relaxed whitespace-pre-wrap selection:bg-unni-accent/20">
+          <div className="max-h-48 overflow-y-auto rounded-xl border border-[#25385C] bg-[#0E1524] p-3.5 text-sm text-slate-200 leading-relaxed whitespace-pre-wrap selection:bg-unni-accent/20">
             {broadcast.message}
           </div>
         </div>
 
         {/* Rodapé do Modal */}
-        <div className="mt-6 flex justify-end">
+        <div className="mt-5 flex justify-end">
           <button
             type="button"
             onClick={onClose}

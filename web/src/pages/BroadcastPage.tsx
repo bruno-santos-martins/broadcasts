@@ -101,6 +101,7 @@ export const BroadcastPage: React.FC = () => {
               {/* List */}
               <BroadcastList
                 broadcasts={broadcasts}
+                contacts={contacts}
                 loading={loading}
                 onDelete={removeBroadcast}
               />
