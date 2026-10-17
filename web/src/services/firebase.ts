@@ -8,9 +8,9 @@ import { getFirestore, connectFirestoreEmulator } from 'firebase/firestore';
  */
 export const firebaseConfig = {
   apiKey: import.meta.env.VITE_FIREBASE_API_KEY || 'demo-zap-key',
-  authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN || 'desafio-gcp-zap.firebaseapp.com',
-  projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID || 'desafio-gcp-zap',
-  storageBucket: import.meta.env.VITE_FIREBASE_STORAGE_BUCKET || 'desafio-gcp-zap.appspot.com',
+  authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN || 'desafio-broadcast-zap.firebaseapp.com',
+  projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID || 'desafio-broadcast-zap',
+  storageBucket: import.meta.env.VITE_FIREBASE_STORAGE_BUCKET || 'desafio-broadcast-zap.firebasestorage.app',
   messagingSenderId: import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID || '123456789012',
   appId: import.meta.env.VITE_FIREBASE_APP_ID || '1:123456789012:web:abcdef123456',
 };
