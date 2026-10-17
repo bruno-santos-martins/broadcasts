@@ -13,7 +13,6 @@ import {
   Send as SendIcon,
   Group as GroupIcon,
   Phone as PhoneIcon,
-  Email as EmailIcon,
   Person as PersonIcon,
 } from '@mui/icons-material';
 import type { Broadcast } from '../../types/broadcast';
@@ -236,12 +235,6 @@ export const BroadcastDetailModal: React.FC<BroadcastDetailModalProps> = ({
                       <p className="text-xs font-medium text-slate-200 truncate">
                         {contact.name}
                       </p>
-                      {contact.email && (
-                        <p className="flex items-center gap-1 text-[11px] text-unni-muted truncate">
-                          <EmailIcon sx={{ fontSize: 11 }} />
-                          {contact.email}
-                        </p>
-                      )}
                     </div>
                   </div>
 
