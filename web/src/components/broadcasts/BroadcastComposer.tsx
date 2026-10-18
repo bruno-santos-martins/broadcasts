@@ -10,6 +10,7 @@ import {
 import type { Connection } from '../../types/connection';
 import type { Contact } from '../../types/contact';
 import type { CreateBroadcastDTO } from '../../types/broadcast';
+import { broadcastComposerSchema } from '../../schemas';
 
 interface BroadcastComposerProps {
   connections: Connection[];
@@ -59,33 +60,29 @@ export const BroadcastComposer: React.FC<BroadcastComposerProps> = ({
     e.preventDefault();
     setFeedback(null);
 
-    if (!selectedConnectionId) {
-      setFeedback({ type: 'error', message: 'Selecione uma conexão para o disparo.' });
-      return;
-    }
+    const validation = broadcastComposerSchema.safeParse({
+      connectionId: selectedConnectionId,
+      message,
+      contactIds: selectedContactIds,
+      isScheduled,
+      scheduledFor: isScheduled ? scheduledFor : null,
+    });
 
-    if (!message.trim()) {
-      setFeedback({ type: 'error', message: 'Digite a mensagem a ser disparada no campo Input.' });
-      return;
-    }
-
-    if (selectedContactIds.length === 0) {
-      setFeedback({ type: 'error', message: 'Selecione pelo menos um contato de destino.' });
-      return;
-    }
-
-    if (isScheduled && !scheduledFor) {
-      setFeedback({ type: 'error', message: 'Defina a data e hora do agendamento.' });
+    if (!validation.success) {
+      setFeedback({
+        type: 'error',
+        message: validation.error.issues[0]?.message || 'Verifique os dados do disparo.',
+      });
       return;
     }
 
     setIsSubmitting(true);
     try {
       await onSubmit({
-        connectionId: selectedConnectionId,
-        message: message.trim(),
-        contactIds: selectedContactIds,
-        scheduledFor: isScheduled ? new Date(scheduledFor).toISOString() : null,
+        connectionId: validation.data.connectionId,
+        message: validation.data.message,
+        contactIds: validation.data.contactIds,
+        scheduledFor: isScheduled && scheduledFor ? new Date(scheduledFor).toISOString() : null,
       });
 
       setFeedback({

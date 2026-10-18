@@ -8,6 +8,7 @@ import {
   Button,
 } from '@mui/material';
 import type { Connection, CreateConnectionDTO, UpdateConnectionDTO } from '../../types/connection';
+import { connectionSchema } from '../../schemas/connection.schema';
 
 interface ConnectionFormModalProps {
   open: boolean;
@@ -26,6 +27,7 @@ export const ConnectionFormModal: React.FC<ConnectionFormModalProps> = ({
   const [phone, setPhone] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
+  const [fieldErrors, setFieldErrors] = useState<Partial<Record<'name' | 'phone', string>>>({});
 
   React.useEffect(() => {
     if (connection) {
@@ -35,21 +37,38 @@ export const ConnectionFormModal: React.FC<ConnectionFormModalProps> = ({
       setName('');
       setPhone('');
     }
+    setFieldErrors({});
+    setErrorMessage('');
   }, [connection, open]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!name.trim() || !phone.trim()) {
-      setErrorMessage('Por favor, preencha todos os campos obrigatórios.');
+
+    const result = connectionSchema.safeParse({
+      name,
+      phone,
+    });
+
+    if (!result.success) {
+      const errors: Partial<Record<'name' | 'phone', string>> = {};
+      result.error.issues.forEach((issue) => {
+        const field = issue.path[0] as keyof typeof errors;
+        if (field && !errors[field]) {
+          errors[field] = issue.message;
+        }
+      });
+      setFieldErrors(errors);
+      setErrorMessage('Por favor, corrija os campos destacados abaixo.');
       return;
     }
 
+    setFieldErrors({});
     setErrorMessage('');
     setIsSubmitting(true);
     try {
       await onSubmit({
-        name: name.trim(),
-        phone: phone.trim(),
+        name: result.data.name,
+        phone: result.data.phone,
         status: connection?.status || 'CONNECTED',
       });
       setName('');
@@ -102,7 +121,7 @@ export const ConnectionFormModal: React.FC<ConnectionFormModalProps> = ({
 
           <div>
             <label htmlFor="conn-name" className="mb-1.5 block text-xs font-semibold text-slate-300">
-              Nome de Identificação
+              Nome de Identificação *
             </label>
             <TextField
               id="conn-name"
@@ -111,41 +130,82 @@ export const ConnectionFormModal: React.FC<ConnectionFormModalProps> = ({
               size="small"
               placeholder="Ex: Comercial 01, Suporte Matriz"
               value={name}
-              onChange={(e) => setName(e.target.value)}
+              onChange={(e) => {
+                setName(e.target.value);
+                if (fieldErrors.name) {
+                  setFieldErrors((prev) => ({ ...prev, name: undefined }));
+                }
+              }}
+              error={Boolean(fieldErrors.name)}
+              helperText={fieldErrors.name}
               variant="outlined"
               sx={{
                 '& .MuiOutlinedInput-root': {
                   backgroundColor: '#0E1524',
                   color: '#F8FAFC',
                   borderRadius: '0.625rem',
-                  '& fieldset': { borderColor: '#25385C' },
-                  '&:hover fieldset': { borderColor: '#54D1D6' },
-                  '&.Mui-focused fieldset': { borderColor: '#54D1D6' },
+                  '& fieldset': { borderColor: fieldErrors.name ? '#F87171' : '#25385C' },
+                  '&:hover fieldset': { borderColor: fieldErrors.name ? '#F87171' : '#54D1D6' },
+                  '&.Mui-focused fieldset': { borderColor: fieldErrors.name ? '#F87171' : '#54D1D6' },
                 },
+                '& .MuiFormHelperText-root': { color: '#F87171', fontSize: '0.75rem', mt: 0.5 },
               }}
             />
           </div>
 
           <div>
             <label htmlFor="conn-phone" className="mb-1.5 block text-xs font-semibold text-slate-300">
-              Telefone WhatsApp (com DDI e DDD)
+              Telefone WhatsApp (apenas números, com DDI e DDD) *
             </label>
             <TextField
               id="conn-phone"
+              type="tel"
               fullWidth
               size="small"
-              placeholder="+55 11 98765-4321"
+              placeholder="5521988158124"
               value={phone}
-              onChange={(e) => setPhone(e.target.value)}
+              slotProps={{
+                htmlInput: {
+                  inputMode: 'numeric',
+                  pattern: '[0-9]*',
+                  maxLength: 15,
+                },
+              }}
+              onKeyDown={(e) => {
+                if (
+                  ['Backspace', 'Tab', 'Enter', 'Delete', 'ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown', 'Home', 'End'].includes(e.key) ||
+                  e.ctrlKey ||
+                  e.metaKey
+                ) {
+                  return;
+                }
+                if (!/^[0-9]$/.test(e.key)) {
+                  e.preventDefault();
+                }
+              }}
+              onChange={(e) => {
+                const numericOnly = e.target.value.replace(/\D/g, '');
+                setPhone(numericOnly);
+                if (fieldErrors.phone) {
+                  setFieldErrors((prev) => ({ ...prev, phone: undefined }));
+                }
+              }}
+              error={Boolean(fieldErrors.phone)}
+              helperText={fieldErrors.phone || 'Apenas números, com DDI e DDD (ex: 5521988158124)'}
               variant="outlined"
               sx={{
                 '& .MuiOutlinedInput-root': {
                   backgroundColor: '#0E1524',
                   color: '#F8FAFC',
                   borderRadius: '0.625rem',
-                  '& fieldset': { borderColor: '#25385C' },
-                  '&:hover fieldset': { borderColor: '#54D1D6' },
-                  '&.Mui-focused fieldset': { borderColor: '#54D1D6' },
+                  '& fieldset': { borderColor: fieldErrors.phone ? '#F87171' : '#25385C' },
+                  '&:hover fieldset': { borderColor: fieldErrors.phone ? '#F87171' : '#54D1D6' },
+                  '&.Mui-focused fieldset': { borderColor: fieldErrors.phone ? '#F87171' : '#54D1D6' },
+                },
+                '& .MuiFormHelperText-root': {
+                  color: fieldErrors.phone ? '#F87171' : '#8E9EB5',
+                  fontSize: '0.75rem',
+                  mt: 0.5,
                 },
               }}
             />

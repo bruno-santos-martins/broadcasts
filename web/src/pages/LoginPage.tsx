@@ -8,6 +8,7 @@ import {
   ArrowForward as ArrowIcon,
 } from '@mui/icons-material';
 import { useAuth } from '../hooks/useAuth';
+import { loginSchema, registerSchema } from '../schemas';
 
 export const LoginPage: React.FC = () => {
   const navigate = useNavigate();
@@ -18,17 +19,34 @@ export const LoginPage: React.FC = () => {
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [fieldErrors, setFieldErrors] = useState<Partial<Record<'name' | 'email' | 'password', string>>>({});
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
+
+    const schema = isRegister ? registerSchema : loginSchema;
+    const validation = schema.safeParse(isRegister ? { name, email, password } : { email, password });
+
+    if (!validation.success) {
+      const errors: Partial<Record<'name' | 'email' | 'password', string>> = {};
+      validation.error.issues.forEach((issue) => {
+        const field = issue.path[0] as keyof typeof errors;
+        if (field && !errors[field]) errors[field] = issue.message;
+      });
+      setFieldErrors(errors);
+      setError(validation.error.issues[0]?.message || 'Por favor, verifique os campos.');
+      return;
+    }
+
+    setFieldErrors({});
     setLoading(true);
 
     try {
       if (isRegister) {
-        await register({ name, email, password });
+        await register({ name: name.trim(), email: email.trim(), password });
       } else {
-        await login({ email, password });
+        await login({ email: email.trim(), password });
       }
       navigate('/connections');
     } catch (err: unknown) {
@@ -95,7 +113,7 @@ export const LoginPage: React.FC = () => {
             {isRegister && (
               <div>
                 <label htmlFor="login-name" className="mb-1 block text-xs font-semibold text-slate-300">
-                  Nome Completo
+                  Nome Completo *
                 </label>
                 <TextField
                   id="login-name"
@@ -104,7 +122,12 @@ export const LoginPage: React.FC = () => {
                   size="small"
                   placeholder="Seu nome completo"
                   value={name}
-                  onChange={(e) => setName(e.target.value)}
+                  onChange={(e) => {
+                    setName(e.target.value);
+                    if (fieldErrors.name) setFieldErrors((prev) => ({ ...prev, name: undefined }));
+                  }}
+                  error={Boolean(fieldErrors.name)}
+                  helperText={fieldErrors.name}
                   slotProps={{
                     input: {
                       startAdornment: <PersonIcon sx={{ color: '#8E9EB5', mr: 1, fontSize: 18 }} aria-hidden="true" />,
@@ -115,10 +138,11 @@ export const LoginPage: React.FC = () => {
                       backgroundColor: '#0E1524',
                       color: '#F1F5F9',
                       borderRadius: '0.5rem',
-                      '& fieldset': { borderColor: '#25385C' },
-                      '&:hover fieldset': { borderColor: '#54D1D6' },
-                      '&.Mui-focused fieldset': { borderColor: '#54D1D6' },
+                      '& fieldset': { borderColor: fieldErrors.name ? '#F87171' : '#25385C' },
+                      '&:hover fieldset': { borderColor: fieldErrors.name ? '#F87171' : '#54D1D6' },
+                      '&.Mui-focused fieldset': { borderColor: fieldErrors.name ? '#F87171' : '#54D1D6' },
                     },
+                    '& .MuiFormHelperText-root': { color: '#F87171', fontSize: '0.75rem', mt: 0.5 },
                   }}
                 />
               </div>
@@ -126,7 +150,7 @@ export const LoginPage: React.FC = () => {
 
             <div>
               <label htmlFor="login-email" className="mb-1 block text-xs font-semibold text-slate-300">
-                E-mail Corporativo
+                E-mail Corporativo *
               </label>
               <TextField
                 id="login-email"
@@ -136,7 +160,12 @@ export const LoginPage: React.FC = () => {
                 type="email"
                 placeholder="seu.email@empresa.com"
                 value={email}
-                onChange={(e) => setEmail(e.target.value)}
+                onChange={(e) => {
+                  setEmail(e.target.value);
+                  if (fieldErrors.email) setFieldErrors((prev) => ({ ...prev, email: undefined }));
+                }}
+                error={Boolean(fieldErrors.email)}
+                helperText={fieldErrors.email}
                 slotProps={{
                   input: {
                     startAdornment: <EmailIcon sx={{ color: '#8E9EB5', mr: 1, fontSize: 18 }} aria-hidden="true" />,
@@ -147,17 +176,18 @@ export const LoginPage: React.FC = () => {
                     backgroundColor: '#0E1524',
                     color: '#F1F5F9',
                     borderRadius: '0.5rem',
-                    '& fieldset': { borderColor: '#25385C' },
-                    '&:hover fieldset': { borderColor: '#54D1D6' },
-                    '&.Mui-focused fieldset': { borderColor: '#54D1D6' },
+                    '& fieldset': { borderColor: fieldErrors.email ? '#F87171' : '#25385C' },
+                    '&:hover fieldset': { borderColor: fieldErrors.email ? '#F87171' : '#54D1D6' },
+                    '&.Mui-focused fieldset': { borderColor: fieldErrors.email ? '#F87171' : '#54D1D6' },
                   },
+                  '& .MuiFormHelperText-root': { color: '#F87171', fontSize: '0.75rem', mt: 0.5 },
                 }}
               />
             </div>
 
             <div>
               <label htmlFor="login-password" className="mb-1 block text-xs font-semibold text-slate-300">
-                Senha de Acesso
+                Senha de Acesso *
               </label>
               <TextField
                 id="login-password"
@@ -166,7 +196,12 @@ export const LoginPage: React.FC = () => {
                 type="password"
                 placeholder="••••••••"
                 value={password}
-                onChange={(e) => setPassword(e.target.value)}
+                onChange={(e) => {
+                  setPassword(e.target.value);
+                  if (fieldErrors.password) setFieldErrors((prev) => ({ ...prev, password: undefined }));
+                }}
+                error={Boolean(fieldErrors.password)}
+                helperText={fieldErrors.password}
                 slotProps={{
                   input: {
                     startAdornment: <LockIcon sx={{ color: '#8E9EB5', mr: 1, fontSize: 18 }} aria-hidden="true" />,
@@ -177,10 +212,11 @@ export const LoginPage: React.FC = () => {
                     backgroundColor: '#0E1524',
                     color: '#F1F5F9',
                     borderRadius: '0.5rem',
-                    '& fieldset': { borderColor: '#25385C' },
-                    '&:hover fieldset': { borderColor: '#54D1D6' },
-                    '&.Mui-focused fieldset': { borderColor: '#54D1D6' },
+                    '& fieldset': { borderColor: fieldErrors.password ? '#F87171' : '#25385C' },
+                    '&:hover fieldset': { borderColor: fieldErrors.password ? '#F87171' : '#54D1D6' },
+                    '&.Mui-focused fieldset': { borderColor: fieldErrors.password ? '#F87171' : '#54D1D6' },
                   },
+                  '& .MuiFormHelperText-root': { color: '#F87171', fontSize: '0.75rem', mt: 0.5 },
                 }}
               />
             </div>
