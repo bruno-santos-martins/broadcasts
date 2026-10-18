@@ -4,6 +4,12 @@
 @tailwind components;
 @tailwind utilities;
 
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
 :root {
   color-scheme: dark;
   --unni-sidebar: #0C1019;
@@ -35,11 +41,24 @@ button {
   appearance: none;
 }
 
+/* Inputs, selects e textareas mantêm apenas a borda colorida no foco, sem outline duplo externo */
+input,
+select,
+textarea {
+  outline: none !important;
+}
+
+input:focus,
+input:focus-visible,
+select:focus,
+select:focus-visible,
+textarea:focus,
+textarea:focus-visible {
+  outline: none !important;
+}
+
 button:focus-visible,
 a:focus-visible,
-input:focus-visible,
-select:focus-visible,
-textarea:focus-visible,
 [role="button"]:focus-visible,
 [role="tab"]:focus-visible,
 [tabindex="0"]:focus-visible {

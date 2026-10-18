@@ -34,10 +34,10 @@ export const BroadcastPage: React.FC = () => {
   return (
     <div className="flex-1 overflow-y-auto bg-unni-main">
       {/* Top Header with border bottom matching reference screenshot */}
-      <div className="border-b border-unni-divider px-8 py-8 md:px-12">
+      <div className="border-b border-unni-divider px-4 py-6 sm:px-8 md:px-12">
         <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
           <div>
-            <h1 className="text-3xl font-bold tracking-tight text-white">
+            <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-white">
               Disparos de Mensagens (Broadcast)
             </h1>
             <p className="mt-1 text-sm text-unni-muted">
@@ -57,7 +57,7 @@ export const BroadcastPage: React.FC = () => {
         </div>
       </div>
 
-      <div className="p-8 md:p-12">
+      <div className="p-4 sm:p-8 md:p-12">
         {error && (
           <div role="alert" className="mb-6 rounded-xl bg-rose-500/10 border border-rose-500/30 p-4 text-xs text-rose-400">
             {error}

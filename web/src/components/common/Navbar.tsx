@@ -40,23 +40,25 @@ export const Navbar: React.FC = () => {
   return (
     <>
       {/* Mobile Top Header */}
-      <header className="flex h-16 w-full items-center justify-between border-b border-unni-divider bg-unni-sidebar px-4 md:hidden">
-        <div className="flex items-center gap-2">
-          <span className="text-xl font-bold tracking-tight text-unni-accent">
+      <header className="box-border flex h-16 w-full max-w-full shrink-0 items-center justify-between border-b border-unni-divider bg-unni-sidebar px-4 sm:px-6 md:hidden">
+        <div className="flex items-center gap-2 min-w-0 flex-1 pr-3">
+          <span className="text-xl font-bold tracking-tight text-unni-accent shrink-0">
             Unni<span className="text-white">Black</span>
           </span>
-          <span className="text-[11px] text-unni-muted">| ∞ Mots Business Partners</span>
+          <span className="text-[11px] text-unni-muted truncate">| ∞ Mots Business Partners</span>
         </div>
-        <button
-          type="button"
-          onClick={() => setMobileOpen(!mobileOpen)}
-          className="rounded-lg p-2 text-unni-muted hover:bg-unni-card hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-400 focus-visible:ring-offset-2 focus-visible:ring-offset-slate-900"
-          aria-label={mobileOpen ? 'Fechar menu de navegação' : 'Abrir menu de navegação'}
-          aria-expanded={mobileOpen}
-          aria-controls="main-sidebar-nav"
-        >
-          {mobileOpen ? <CloseIcon /> : <MenuIcon />}
-        </button>
+        <div className="flex shrink-0 items-center">
+          <button
+            type="button"
+            onClick={() => setMobileOpen(!mobileOpen)}
+            className="flex h-10 w-10 items-center justify-center rounded-xl bg-unni-card/80 border border-unni-border/60 text-slate-200 hover:bg-unni-card hover:text-white transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-400 focus-visible:ring-offset-2 focus-visible:ring-offset-slate-900"
+            aria-label={mobileOpen ? 'Fechar menu de navegação' : 'Abrir menu de navegação'}
+            aria-expanded={mobileOpen}
+            aria-controls="main-sidebar-nav"
+          >
+            {mobileOpen ? <CloseIcon /> : <MenuIcon />}
+          </button>
+        </div>
       </header>
 
       {/* Sidebar Navigation */}

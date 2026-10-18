@@ -10,9 +10,9 @@ import { BroadcastPage } from './pages/BroadcastPage';
 
 const AppLayout: React.FC = () => {
   return (
-    <div className="flex h-screen w-screen overflow-hidden bg-unni-main text-slate-100 flex-col md:flex-row">
+    <div className="flex h-screen w-full max-w-full overflow-hidden bg-unni-main text-slate-100 flex-col md:flex-row">
       <Navbar />
-      <main className="flex flex-1 flex-col overflow-y-auto bg-unni-main">
+      <main className="flex flex-1 flex-col overflow-y-auto bg-unni-main min-w-0">
         <Outlet />
       </main>
     </div>
