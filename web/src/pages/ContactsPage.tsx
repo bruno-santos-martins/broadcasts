@@ -2,7 +2,6 @@ import React, { useState, useEffect } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import {
   Add as AddIcon,
-  Refresh as RefreshIcon,
   FilterList as FilterIcon,
 } from '@mui/icons-material';
 import { useContacts } from '../hooks/useContacts';
@@ -21,7 +20,6 @@ export const ContactsPage: React.FC = () => {
     contacts,
     loading,
     error,
-    refresh,
     addContact,
     updateContact,
     removeContact,
@@ -86,16 +84,6 @@ export const ContactsPage: React.FC = () => {
           </div>
 
           <div className="flex items-center gap-2">
-            <button
-              type="button"
-              onClick={() => refresh()}
-              title="Recarregar Lista"
-              aria-label="Recarregar lista de contatos"
-              className="rounded-xl border border-unni-border bg-unni-card p-2.5 text-unni-muted transition hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-400 focus-visible:ring-offset-2 focus-visible:ring-offset-slate-900"
-            >
-              <RefreshIcon sx={{ fontSize: 18 }} aria-hidden="true" />
-            </button>
-
             <button
               ref={newContactButtonRef}
               type="button"

@@ -1,12 +1,12 @@
 import React, { useState } from 'react';
-import { Add as AddIcon, Refresh as RefreshIcon } from '@mui/icons-material';
+import { Add as AddIcon } from '@mui/icons-material';
 import { useConnections } from '../hooks/useConnections';
 import { ConnectionList } from '../components/connections/ConnectionList';
 import { ConnectionFormModal } from '../components/connections/ConnectionFormModal';
 import type { Connection, CreateConnectionDTO, UpdateConnectionDTO } from '../types/connection';
 
 export const ConnectionsPage: React.FC = () => {
-  const { connections, loading, error, refresh, addConnection, updateConnection, removeConnection } = useConnections();
+  const { connections, loading, error, addConnection, updateConnection, removeConnection } = useConnections();
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingConnection, setEditingConnection] = useState<Connection | null>(null);
   const openModalButtonRef = React.useRef<HTMLButtonElement>(null);
@@ -53,16 +53,6 @@ export const ConnectionsPage: React.FC = () => {
           </div>
 
           <div className="flex items-center gap-2">
-            <button
-              type="button"
-              onClick={() => refresh()}
-              title="Recarregar Conexões"
-              aria-label="Recarregar lista de conexões"
-              className="rounded-xl border border-unni-border bg-unni-card p-2.5 text-unni-muted transition hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-400 focus-visible:ring-offset-2 focus-visible:ring-offset-slate-900"
-            >
-              <RefreshIcon sx={{ fontSize: 18 }} aria-hidden="true" />
-            </button>
-
             <button
               ref={openModalButtonRef}
               type="button"

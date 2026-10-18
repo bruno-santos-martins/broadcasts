@@ -1,5 +1,4 @@
 import React, { useState } from 'react';
-import { Refresh as RefreshIcon } from '@mui/icons-material';
 import { useConnections } from '../hooks/useConnections';
 import { useContacts } from '../hooks/useContacts';
 import { useBroadcasts } from '../hooks/useBroadcasts';
@@ -25,7 +24,6 @@ export const BroadcastPage: React.FC = () => {
     setFilter,
     loading,
     error,
-    refresh,
     addBroadcast,
     removeBroadcast,
     updateMessage,
@@ -44,16 +42,6 @@ export const BroadcastPage: React.FC = () => {
               Disparos de mensagens (Broadcast)
             </p>
           </div>
-
-          <button
-            type="button"
-            onClick={() => refresh()}
-            title="Recarregar Disparos"
-            aria-label="Recarregar lista de disparos"
-            className="self-start rounded-xl border border-unni-border bg-unni-card p-2.5 text-unni-muted transition hover:text-white sm:self-auto focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-400 focus-visible:ring-offset-2 focus-visible:ring-offset-slate-900"
-          >
-            <RefreshIcon sx={{ fontSize: 18 }} aria-hidden="true" />
-          </button>
         </div>
       </div>
 
